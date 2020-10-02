@@ -15,6 +15,15 @@ macro_rules! convert_to {
 }
 
 impl Volume {
+    pub fn lookup(&self) -> String {
+        match self {
+            Volume::GallonUS(x) => format!("{}G", x),
+            Volume::GallonUSDry(x) => format!("{} US Dry Gallon", x),
+            Volume::GallonImperial(x) => format!("{} Imperial Gallon", x),
+            Volume::Liter(x) => format!("{} liters", x),
+        }
+    }
+
     pub fn si_unit(unit: &Volume) -> (f32, f32) {
         match unit {
             &Volume::GallonUS(x) => (3.785411784 / 1_000_000.0, x),
@@ -88,9 +97,19 @@ mod tests {
             Volume::GallonUS(12.199998)
         );
     }
+
+    #[test]
+    fn test_volume_lookup() {
+        assert_eq!(&mock::gallon_us().lookup(), "12.2G");
+        assert_eq!(&mock::gallon_us_dry().lookup(), "12.2 US Dry Gallon");
+        assert_eq!(&mock::gallon_imperial().lookup(), "12.2 Imperial Gallon");
+        assert_eq!(&mock::liter().lookup(), "12.2 liters");
+    }
+
     #[test]
     fn test_volume_parse() {
         assert_eq!("5g".parse(), Ok(Volume::GallonUS(5.0)));
+        assert_eq!("12.2g".parse(), Ok(Volume::GallonUS(12.2)));
         assert_eq!("5G".parse(), Ok(Volume::GallonUS(5.0)));
         //assert_eq!("5 Gallon".parse().is_err(), true);
         //assert_eq!("5 L".parse().is_err(), true);
