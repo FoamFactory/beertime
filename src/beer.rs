@@ -1,5 +1,6 @@
 use crate::style::Style;
 
+#[derive(Debug, PartialEq)]
 pub struct Beer {
     name: String,
     style: Style,

@@ -2,6 +2,7 @@ use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 use crate::volume::Volume;
 
+#[derive(Debug, PartialEq)]
 pub struct Equipment {
     id: String,
     system: System,

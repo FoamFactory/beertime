@@ -1,6 +1,7 @@
 use crate::beer::Beer;
 use crate::equipment::Equipment;
 
+#[derive(Debug, PartialEq)]
 pub struct Factory {
     pub name: String,
     pub equipments: Vec<Equipment>,
