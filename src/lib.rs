@@ -1,3 +1,4 @@
+pub mod group;
 pub mod style;
 
 #[cfg(test)]
