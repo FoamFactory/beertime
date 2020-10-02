@@ -71,7 +71,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_equipmentgroupstyle_lookup() {
+    fn test_equipmentgroup_lookup() {
         assert_eq!(EquipmentGroup::MashTun.lookup(), "Mash Tun");
         assert_eq!(EquipmentGroup::HotLiquorTank.lookup(), "Hot Liqoor Tank");
         assert_eq!(EquipmentGroup::Kettle.lookup(), "Kettle");

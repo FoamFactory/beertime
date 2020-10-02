@@ -4,6 +4,7 @@ pub enum Volume {
     GallonUSDry(f32),
     GallonImperial(f32),
     Liter(f32),
+    Lb(f32), //CO2 weight unit
 }
 
 macro_rules! convert_to {
@@ -21,6 +22,7 @@ impl Volume {
             Volume::GallonUSDry(x) => format!("{} US Dry Gallon", x),
             Volume::GallonImperial(x) => format!("{} Imperial Gallon", x),
             Volume::Liter(x) => format!("{} liters", x),
+            Volume::Lb(x) => format!("{} pound (mass)", x),
         }
     }
 
@@ -30,6 +32,7 @@ impl Volume {
             &Volume::GallonUSDry(x) => (4.404_883_770_86 / 1_000_000.0, x),
             &Volume::GallonImperial(x) => (4.546_09 / 1_000_000.0, x),
             &Volume::Liter(x) => (1.0 / 1_000_000.0, x),
+            &Volume::Lb(_) => panic!("lb is a weigth, not a volume"),
         }
     }
 
@@ -44,6 +47,7 @@ impl Volume {
     pub fn to_gallon_imperial(&self) -> Volume {
         convert_to!(Volume::GallonImperial, self)
     }
+
     pub fn to_liter(&self) -> Volume {
         convert_to!(Volume::Liter, self)
     }
@@ -80,6 +84,10 @@ pub mod mock {
 
     pub fn liter() -> Volume {
         Volume::Liter(12.2)
+    }
+
+    pub fn Lb() -> Volume {
+        Volume::Lb(12.2)
     }
 }
 
