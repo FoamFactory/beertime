@@ -5,6 +5,7 @@ pub mod factory;
 pub mod interval;
 pub mod recipy;
 pub mod step_group;
+pub mod steps;
 pub mod style;
 pub mod system;
 pub mod volume;

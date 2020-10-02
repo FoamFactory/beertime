@@ -86,7 +86,7 @@ pub mod mock {
         Volume::Liter(12.2)
     }
 
-    pub fn Lb() -> Volume {
+    pub fn lb() -> Volume {
         Volume::Lb(12.2)
     }
 }
