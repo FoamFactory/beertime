@@ -53,6 +53,58 @@ impl std::str::FromStr for Style {
         }
     }
 }
+#[cfg(test)]
+pub mod mock {
+    use super::*;
+
+    pub fn amber_lager() -> Style {
+        Style::AmberLager
+    }
+
+    pub fn blonde_ale() -> Style {
+        Style::BlondeAle
+    }
+
+    pub fn brown_ale() -> Style {
+        Style::BrownAle
+    }
+
+    pub fn california_common() -> Style {
+        Style::CaliforniaCommon
+    }
+
+    pub fn fruit_beer() -> Style {
+        Style::FruitBeer
+    }
+
+    pub fn ipa() -> Style {
+        Style::IPA
+    }
+
+    pub fn imperial_stout() -> Style {
+        Style::ImperialStout
+    }
+
+    pub fn irish_red_ale() -> Style {
+        Style::IrishRedAle
+    }
+
+    pub fn kellerbier() -> Style {
+        Style::Kellerbier
+    }
+
+    pub fn pilsner() -> Style {
+        Style::Pilsner
+    }
+
+    pub fn smoked_ale() -> Style {
+        Style::SmokedAle
+    }
+
+    pub fn specialty_stout() -> Style {
+        Style::SpecialtyStout
+    }
+}
 
 #[cfg(test)]
 mod tests {

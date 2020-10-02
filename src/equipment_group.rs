@@ -38,6 +38,35 @@ impl std::str::FromStr for EquipmentGroup {
 }
 
 #[cfg(test)]
+pub mod mock {
+    use super::*;
+
+    pub fn mash_tun() -> EquipmentGroup {
+        EquipmentGroup::MashTun
+    }
+
+    pub fn hot_liquor_tank() -> EquipmentGroup {
+        EquipmentGroup::HotLiquorTank
+    }
+
+    pub fn kettle() -> EquipmentGroup {
+        EquipmentGroup::Kettle
+    }
+
+    pub fn fermentor() -> EquipmentGroup {
+        EquipmentGroup::Fermentor
+    }
+
+    pub fn co2_tank() -> EquipmentGroup {
+        EquipmentGroup::CO2Tank
+    }
+
+    pub fn keg() -> EquipmentGroup {
+        EquipmentGroup::Keg
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 

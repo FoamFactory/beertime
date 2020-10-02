@@ -20,6 +20,7 @@ impl StepGroup {
         }
     }
 }
+
 impl std::str::FromStr for StepGroup {
     type Err = ();
 
@@ -33,6 +34,33 @@ impl std::str::FromStr for StepGroup {
             "Secondary Fermentation" => Ok(StepGroup::SecondaryFermentation),
             _ => Err(()),
         }
+    }
+}
+#[cfg(test)]
+pub mod mock {
+    use super::*;
+    pub fn aging() -> StepGroup {
+        StepGroup::Aging
+    }
+
+    pub fn brewing() -> StepGroup {
+        StepGroup::Brewing
+    }
+
+    pub fn carbonation() -> StepGroup {
+        StepGroup::Carbonation
+    }
+
+    pub fn diactyl_rest() -> StepGroup {
+        StepGroup::DiactylRest
+    }
+
+    pub fn primary_fermentation() -> StepGroup {
+        StepGroup::PrimaryFermentation
+    }
+
+    pub fn secondary_fermentation() -> StepGroup {
+        StepGroup::SecondaryFermentation
     }
 }
 

@@ -22,6 +22,7 @@ impl System {
         }
     }
 }
+
 impl std::str::FromStr for System {
     type Err = ();
 
@@ -51,8 +52,34 @@ impl System {
 }
 
 #[cfg(test)]
+pub mod mock {
+    use super::*;
+
+    pub fn g5() -> System {
+        System::G5
+    }
+
+    pub fn g10() -> System {
+        System::G10
+    }
+
+    pub fn bbl5() -> System {
+        System::BBL5
+    }
+
+    pub fn bbl10() -> System {
+        System::BBL10
+    }
+
+    pub fn bbl15() -> System {
+        System::BBL15
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_system_lookup() {
         assert_eq!(System::G5.lookup(), "5G");

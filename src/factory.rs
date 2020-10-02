@@ -9,6 +9,7 @@ impl Factory {
         }
     }
 }
+
 #[cfg(test)]
 pub mod mock {
     use super::*;
