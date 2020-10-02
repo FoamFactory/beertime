@@ -50,7 +50,7 @@ fn load(factory: &mut Factory) {
         ));
     }
     for eq in eqs {
-        factory.equipment.push(eq);
+        factory.equipments.push(eq);
     }
 
     // equipment
