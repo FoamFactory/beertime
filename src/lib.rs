@@ -1,4 +1,4 @@
-pub mod group;
+pub mod step_group;
 pub mod style;
 pub mod system;
 pub mod volume;
