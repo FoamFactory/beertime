@@ -1,3 +1,4 @@
+pub mod equipment_group;
 pub mod step_group;
 pub mod style;
 pub mod system;
