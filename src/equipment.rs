@@ -4,7 +4,7 @@ use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
 pub struct Equipment {
-    id: String,
+    pub name: String,
     system: System,
     equipment_group: EquipmentGroup,
     volume: Volume,
@@ -12,13 +12,13 @@ pub struct Equipment {
 
 impl Equipment {
     pub fn new(
-        id: String,
+        name: String,
         system: System,
         equipment_group: EquipmentGroup,
         volume: Volume,
     ) -> Self {
         Self {
-            id,
+            name,
             system,
             equipment_group,
             volume,
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn test_equimpment_new() {
         let equipment = mock::equipment();
-        assert_eq!(&equipment.id, "Foobar 2000");
+        assert_eq!(&equipment.name, "Foobar 2000");
         assert_eq!(equipment.system, system::mock::bbl5());
         assert_eq!(equipment.equipment_group, equipment_group::mock::mash_tun());
         assert_eq!(equipment.volume, volume::mock::gallon_us());

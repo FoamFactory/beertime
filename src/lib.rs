@@ -1,3 +1,4 @@
+pub mod batchneed;
 pub mod beer;
 pub mod equipment;
 pub mod equipment_group;

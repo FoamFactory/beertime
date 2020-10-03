@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Volume {
     GallonUS(f32),
     GallonUSDry(f32),
@@ -50,6 +50,15 @@ impl Volume {
 
     pub fn to_liter(&self) -> Volume {
         convert_to!(Volume::Liter, self)
+    }
+
+    pub fn full_batches(&self, batch_size: &Volume) -> usize {
+        let need = self.to_liter();
+        let size = batch_size.to_liter();
+        match (need, size) {
+            (Volume::Liter(n), Volume::Liter(s)) => (n / s).ceil() as usize,
+            _ => panic!("Should not happen"),
+        }
     }
 }
 
@@ -122,5 +131,15 @@ mod tests {
         //assert_eq!("5 Gallon".parse().is_err(), true);
         //assert_eq!("5 L".parse().is_err(), true);
         //assert_eq!("5l".parse().is_err(), true);
+    }
+
+    #[test]
+    fn test_batch_count() {
+        let need_gallons = Volume::GallonUS(10.0);
+        let size = Volume::GallonUS(0.3);
+        assert_eq!(need_gallons.full_batches(&size), 34);
+
+        let need_liters = Volume::Liter(100.0);
+        assert_eq!(need_liters.full_batches(&size), 89);
     }
 }

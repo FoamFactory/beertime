@@ -6,7 +6,7 @@ use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
 pub struct Recipy {
-    map: HashMap<System, (Volume, Steps)>,
+    pub map: HashMap<System, (Volume, Steps)>,
 }
 
 impl Recipy {

@@ -3,9 +3,9 @@ use crate::style::Style;
 
 #[derive(Debug, PartialEq)]
 pub struct Beer {
-    name: String,
+    pub name: String,
     style: Style,
-    recipy: Recipy,
+    pub recipy: Recipy,
 }
 
 impl Beer {

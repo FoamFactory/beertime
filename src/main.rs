@@ -55,7 +55,7 @@ fn load_equipment(factory: &mut Factory) {
         ));
     }
     for eq in eqs {
-        factory.equipments.push(eq);
+        factory.equipments.insert(eq.name.to_string(), eq);
     }
 }
 
@@ -255,8 +255,16 @@ fn load_recipies(factory: &mut Factory) {
         ),
     ];
     for beer in beers {
-        factory.beers.push(beer)
+        factory.beers.insert(beer.name.to_string(), beer);
     }
+}
+
+fn wishlist(_factory: &Factory) -> Vec<(&'static str, Volume)> {
+    vec![
+        ("Bier", Volume::GallonUS(90.0)),
+        ("Anti-Scurvy Elixir", Volume::GallonUS(90.0)),
+        ("Autumn's Early Arrival Blonde", Volume::GallonUS(60.0)),
+    ]
 }
 
 fn load(factory: &mut Factory) {
@@ -267,6 +275,14 @@ fn load(factory: &mut Factory) {
 fn main() {
     let mut factory = Factory::new("Loons Landing");
     load(&mut factory);
+    let wishlist = wishlist(&factory);
+    let batches_needed = factory.calculate_batches(wishlist);
+    println!("batches needed: {:?}", batches_needed);
+    //todo: calculate bottlenack
+    //todo plan around bottleneck
+    //todo generate plan list
+    //generate gantt chart
+    //calculate oee's
 
     println!("ok");
 }
