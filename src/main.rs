@@ -277,8 +277,13 @@ fn main() {
     load(&mut factory);
     let wishlist = wishlist(&factory);
     let batches_needed = factory.calculate_batches(wishlist);
-    println!("batches needed: {:?}", batches_needed);
-    //todo: calculate bottlenack
+    assert_eq!(batches_needed.len(), 24);
+    println!("\nbatches needed: {:?}", batches_needed);
+    let most_needed_steps = factory.calculate_bottleneck_step(batches_needed);
+    println!("\nbottleneck step: {:?}", most_needed_steps);
+    let most_needed_equipment = factory.calculate_bottleneck_equipment(most_needed_steps);
+    println!("\nbottleneck equipment: {:?}", most_needed_equipment);
+    //todo: calculate bottleneck
     //todo plan around bottleneck
     //todo generate plan list
     //generate gantt chart

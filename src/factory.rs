@@ -1,8 +1,14 @@
 use std::collections::HashMap;
 
+use chrono::Duration;
+
 use crate::batchneed::BatchNeed;
 use crate::beer::Beer;
 use crate::equipment::Equipment;
+use crate::equipment_group::EquipmentGroup;
+use crate::step_group::StepGroup;
+use crate::steps::StepIterator;
+use crate::system::System;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
@@ -20,6 +26,7 @@ impl Factory {
             beers: HashMap::new(),
         }
     }
+
     pub fn calculate_batches(&self, wishlist: Vec<(&'static str, Volume)>) -> Vec<BatchNeed> {
         let mut batches_needed = Vec::with_capacity(wishlist.len());
         for (beer_name, quantity) in wishlist {
@@ -29,7 +36,7 @@ impl Factory {
                 .expect(&format!("Unknow beer: {}", beer_name));
             //FIXME: we now take the first recipy that is registered,
             //       this should be done by the solver
-            let (system, (r#yield, _steps)) = beer
+            let (system, (r#yield, steps)) = beer
                 .recipy
                 .map
                 .iter()
@@ -43,6 +50,48 @@ impl Factory {
         }
 
         batches_needed
+    }
+
+    pub fn calculate_bottleneck_step(
+        &self,
+        batches: Vec<BatchNeed>,
+    ) -> Vec<(System, StepGroup, Duration)> {
+        let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
+        for batch in batches {
+            let (_volume, steps) = batch.beer.recipy.get(batch.system).expect(&format!(
+                "Beer {} should have a recipy for system {:?}",
+                batch.beer.name, batch.system
+            ));
+            for (step_group, interval) in StepIterator::new(steps) {
+                match temp.get_mut(&(batch.system.clone(), step_group.clone())) {
+                    None => {
+                        temp.insert(
+                            (batch.system.clone(), step_group.clone()),
+                            interval.duration(),
+                        );
+                    }
+                    Some(dur) => {
+                        *dur = *dur + interval.duration();
+                    }
+                }
+            }
+        }
+        //sort, descending on usage
+        let mut temp_vec: Vec<(&(System, StepGroup), &Duration)> = temp.iter().collect();
+        temp_vec.sort_by(|a, b| b.1.cmp(a.1));
+        temp_vec
+            .iter()
+            .map(|((system, stepgroup), duration)| {
+                (system.clone(), stepgroup.clone(), *duration.clone())
+            })
+            .collect()
+    }
+
+    pub fn calculate_bottleneck_equipment(
+        &self,
+        acc_batches: Vec<(System, StepGroup, Duration)>,
+    ) -> Vec<(System, EquipmentGroup, Duration)> {
+        unimplemented!()
     }
 }
 

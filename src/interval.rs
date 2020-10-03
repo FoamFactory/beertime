@@ -17,27 +17,32 @@ impl Interval {
             Interval::Months(x) => format!("{}m", x),
         }
     }
+    pub fn duration(&self) -> Duration {
+        match self {
+            Interval::Hours(x) => Duration::hours(*x as i64),
+            Interval::Days(x) => Duration::days(*x as i64),
+            Interval::Weeks(x) => Duration::days(*x as i64 * 7),
+            Interval::Months(x) => Duration::days(*x as i64 * 30),
+        }
+    }
 
     pub fn range(&self) -> (Duration, Duration) {
+        let d = self.duration();
         match self {
             Interval::Hours(x) => {
                 let delta = Duration::minutes(30);
-                let d = Duration::hours(*x as i64);
                 (d - delta, d + delta)
             }
             Interval::Days(x) => {
                 let delta = Duration::hours(8);
-                let d = Duration::days(*x as i64);
                 (d - delta, d + delta)
             }
             Interval::Weeks(x) => {
                 let delta = Duration::days(4);
-                let d = Duration::days(*x as i64 * 7);
                 (d - delta, d + delta)
             }
             Interval::Months(x) => {
                 let delta = Duration::days(7);
-                let d = Duration::days(*x as i64 * 30);
                 (d - delta, d + delta)
             }
         }
@@ -101,6 +106,23 @@ mod tests {
         assert_eq!("8d".parse(), Ok(Interval::Days(8)));
         assert_eq!("8w".parse(), Ok(Interval::Weeks(8)));
         assert_eq!("8m".parse(), Ok(Interval::Months(8)));
+    }
+
+    #[test]
+    fn test_interval_duration() {
+        assert_eq!(Interval::Hours(8).duration(), Duration::seconds(8 * 3600));
+        assert_eq!(
+            Interval::Days(8).duration(),
+            Duration::seconds(8 * 24 * 3600)
+        );
+        assert_eq!(
+            Interval::Weeks(8).duration(),
+            Duration::seconds(8 * 7 * 24 * 3600)
+        );
+        assert_eq!(
+            Interval::Months(8).duration(),
+            Duration::seconds(8 * 30 * 24 * 3600)
+        );
     }
 
     #[test]

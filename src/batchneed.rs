@@ -4,10 +4,11 @@ use crate::volume::Volume;
 
 #[derive(Debug)]
 pub struct BatchNeed<'a> {
-    beer: &'a Beer,
-    system: &'a System,
-    volume: Volume,
+    pub beer: &'a Beer,
+    pub system: &'a System,
+    pub volume: Volume,
 }
+
 impl<'a> BatchNeed<'a> {
     pub fn new(beer: &'a Beer, system: &'a System, volume: Volume) -> Self {
         Self {

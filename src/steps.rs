@@ -54,7 +54,7 @@ impl Steps {
     }
 }
 
-struct StepIterator<'a> {
+pub struct StepIterator<'a> {
     steps: &'a Steps,
     pos: usize,
     order: Vec<StepGroup>,
