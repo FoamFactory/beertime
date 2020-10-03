@@ -1,38 +1,47 @@
-use crate::beer::Beer;
+use std::collections::HashMap;
+
 use crate::steps::Steps;
 use crate::system::System;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
 pub struct Recipy {
-    beer: Beer,
-    system: System,
-    r#yield: Volume,
-    steps: Steps,
+    map: HashMap<System, (Volume, Steps)>,
 }
 
 impl Recipy {
-    pub fn new(beer: Beer, system: System, r#yield: Volume, steps: Steps) -> Self {
+    pub fn blank() -> Self {
         Self {
-            beer,
-            system,
-            r#yield,
-            steps,
+            map: HashMap::new(),
         }
+    }
+
+    pub fn new(system: System, r#yield: Volume, steps: Steps) -> Self {
+        let mut recipy = Recipy::blank();
+        recipy.map.insert(system, (r#yield, steps));
+
+        recipy
+    }
+
+    pub fn store(&mut self, system: System, r#yield: Volume, steps: Steps) {
+        assert_eq!(self.get(&system), None);
+        self.map.insert(system, (r#yield, steps));
+    }
+
+    pub fn get(&self, system: &System) -> Option<&(Volume, Steps)> {
+        self.map.get(system)
     }
 }
 
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    use crate::beer;
     use crate::steps;
     use crate::system;
     use crate::volume;
 
     pub fn recipy() -> Recipy {
         Recipy::new(
-            beer::mock::beer(),
             system::mock::g5(),
             volume::mock::gallon_us(),
             steps::mock::steps(),
@@ -43,17 +52,16 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::beer;
     use crate::steps;
     use crate::system;
     use crate::volume;
 
     #[test]
-    fn test_beer_new() {
+    fn test_recipy_new() {
         let recipy = mock::recipy();
-        assert_eq!(recipy.beer, beer::mock::beer());
-        assert_eq!(recipy.system, system::mock::g5());
-        assert_eq!(recipy.r#yield, volume::mock::gallon_us());
-        assert_eq!(recipy.steps, steps::mock::steps());
+        assert_eq!(
+            recipy.get(&system::mock::g5()),
+            Some(&(volume::mock::gallon_us(), steps::mock::steps()))
+        );
     }
 }

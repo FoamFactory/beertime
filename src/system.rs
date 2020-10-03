@@ -1,6 +1,6 @@
 use crate::volume::Volume;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq)]
 pub enum System {
     G5,
     G10,

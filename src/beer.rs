@@ -1,16 +1,19 @@
+use crate::recipy::Recipy;
 use crate::style::Style;
 
 #[derive(Debug, PartialEq)]
 pub struct Beer {
     name: String,
     style: Style,
+    recipy: Recipy,
 }
 
 impl Beer {
-    pub fn new(name: &str, style: Style) -> Self {
+    pub fn new(name: &str, style: Style, recipy: Recipy) -> Self {
         Self {
             name: name.to_string(),
             style,
+            recipy,
         }
     }
 }
@@ -18,16 +21,22 @@ impl Beer {
 #[cfg(test)]
 pub mod mock {
     use super::*;
+    use crate::recipy;
     use crate::style;
 
     pub fn beer() -> Beer {
-        Beer::new("foobeer 2000", style::mock::pilsner())
+        Beer::new(
+            "foobeer 2000",
+            style::mock::pilsner(),
+            recipy::mock::recipy(),
+        )
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::recipy;
     use crate::style;
 
     #[test]
@@ -35,5 +44,6 @@ mod tests {
         let beer = mock::beer();
         assert_eq!(&beer.name, "foobeer 2000");
         assert_eq!(beer.style, style::mock::pilsner());
+        assert_eq!(beer.recipy, recipy::mock::recipy());
     }
 }
