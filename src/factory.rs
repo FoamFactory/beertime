@@ -112,6 +112,21 @@ impl Factory {
             })
             .collect()
     }
+
+    pub fn list_suited_equipment(
+        &self,
+        system: &System,
+        equipment_group: &EquipmentGroup,
+    ) -> Vec<&Equipment> {
+        let mut out = Vec::new();
+        for equipment in self.equipments.values() {
+            if &equipment.system == system && &equipment.equipment_group == equipment_group {
+                out.push(equipment)
+            }
+        }
+
+        out
+    }
 }
 
 #[cfg(test)]
@@ -138,6 +153,10 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::equipment;
+    use crate::equipment_group;
+    use crate::system;
+    use crate::volume;
 
     #[test]
     fn test_factory_new() {
@@ -145,5 +164,34 @@ mod tests {
         assert_eq!(&factory.name, "loonslanding");
         assert_eq!(factory.equipments.len(), 1);
         assert_eq!(factory.beers.len(), 1);
+    }
+
+    #[test]
+    fn test_factory_list_suited_equipment() {
+        let mut factory = mock::factory();
+        let equipment_1 = equipment::mock::equipment();
+        let equipment_2 = Equipment::new(
+            "Foobar 2001".to_string(),
+            system::mock::bbl5(),
+            equipment_group::mock::mash_tun(),
+            volume::mock::gallon_us(),
+        );
+
+        factory
+            .equipments
+            .insert(equipment_2.name.to_string(), equipment_2.clone());
+        assert_eq!(factory.equipments.len(), 2);
+        assert_eq!(
+            factory.list_suited_equipment(&System::G10, &EquipmentGroup::CO2Tank),
+            Vec::<&Equipment>::new()
+        );
+        assert_eq!(
+            factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::CO2Tank),
+            Vec::<&Equipment>::new()
+        );
+        assert_eq!(
+            factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::MashTun),
+            vec![&equipment_1, &equipment_2]
+        );
     }
 }

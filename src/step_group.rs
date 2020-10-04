@@ -25,7 +25,8 @@ impl StepGroup {
     pub fn equipment_group(&self) -> EquipmentGroup {
         match self {
             StepGroup::Aging => EquipmentGroup::Keg,
-            StepGroup::Brewing => unimplemented!(), //EquipmentGroup::HotLiquorTank EquipmentGroup::MashTun,
+            //StepGroup::Brewing => unimplemented!(), //EquipmentGroup::HotLiquorTank EquipmentGroup::MashTun,
+            StepGroup::Brewing => EquipmentGroup::HotLiquorTank, //EquipmentGroup::MashTun,
             StepGroup::Carbonation => EquipmentGroup::CO2Tank,
             StepGroup::DiactylRest => EquipmentGroup::Fermentor,
             StepGroup::PrimaryFermentation => EquipmentGroup::Fermentor,

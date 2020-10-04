@@ -2,11 +2,11 @@ use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 use crate::volume::Volume;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
     pub name: String,
-    system: System,
-    equipment_group: EquipmentGroup,
+    pub system: System,
+    pub equipment_group: EquipmentGroup,
     volume: Volume,
 }
 
