@@ -278,12 +278,14 @@ fn main() {
     let wishlist = wishlist(&factory);
     let batches_needed = factory.calculate_batches(wishlist);
     assert_eq!(batches_needed.len(), 24);
+    //FIXME: group theses steps together; there is too much hash/vector building and sorting going on
     println!("\nbatches needed: {:?}", batches_needed);
     let most_needed_steps = factory.calculate_bottleneck_step(batches_needed);
     println!("\nbottleneck step: {:?}", most_needed_steps);
     let most_needed_equipment = factory.calculate_bottleneck_equipment(most_needed_steps);
     println!("\nbottleneck equipment: {:?}", most_needed_equipment);
-    //todo: calculate bottleneck
+    let most_bottlenecked_equipment = factory.calculate_bottleneck(most_needed_equipment);
+    println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
     //todo plan around bottleneck
     //todo generate plan list
     //generate gantt chart

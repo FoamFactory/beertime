@@ -127,6 +127,29 @@ impl Factory {
 
         out
     }
+
+    pub fn calculate_bottleneck(
+        &self,
+        acc_equipment: Vec<(System, EquipmentGroup, Duration)>,
+    ) -> Vec<(System, EquipmentGroup, Duration)> {
+        let mut temp = HashMap::with_capacity(acc_equipment.len());
+        for (system, equipment_group, duration) in &acc_equipment {
+            let suited = self.list_suited_equipment(system, equipment_group);
+            assert!(suited.len() > 0);
+            let avg_duration = *duration / (suited.len() as i32);
+            temp.insert((system.clone(), equipment_group.clone()), avg_duration);
+        }
+
+        let mut temp_vec: Vec<(&(System, EquipmentGroup), &Duration)> = temp.iter().collect();
+        temp_vec.sort_by(|a, b| b.1.cmp(&a.1));
+
+        temp_vec
+            .iter()
+            .map(|((system, equipment_group), duration)| {
+                (system.clone(), equipment_group.clone(), *duration.clone())
+            })
+            .collect()
+    }
 }
 
 #[cfg(test)]
