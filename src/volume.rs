@@ -53,12 +53,12 @@ impl Volume {
     }
 
     pub fn full_batches(&self, batch_size: &Volume) -> usize {
-        let need = self.to_liter();
-        let size = batch_size.to_liter();
-        match (need, size) {
-            (Volume::Liter(n), Volume::Liter(s)) => (n / s).ceil() as usize,
-            _ => panic!("Should not happen"),
+        if let Volume::Liter(need) = self.to_liter() {
+            if let Volume::Liter(size) = batch_size.to_liter() {
+                return (need / size).ceil() as usize;
+            }
         }
+        panic!("Should not happen");
     }
 }
 

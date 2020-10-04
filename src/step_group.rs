@@ -1,3 +1,5 @@
+use crate::equipment_group::EquipmentGroup;
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum StepGroup {
     Brewing,
@@ -19,6 +21,17 @@ impl StepGroup {
             StepGroup::SecondaryFermentation => "Secondary Fermentation",
         }
     }
+
+    pub fn equipment_group(&self) -> EquipmentGroup {
+        match self {
+            StepGroup::Aging => EquipmentGroup::Keg,
+            StepGroup::Brewing => unimplemented!(), //EquipmentGroup::HotLiquorTank EquipmentGroup::MashTun,
+            StepGroup::Carbonation => EquipmentGroup::CO2Tank,
+            StepGroup::DiactylRest => EquipmentGroup::Fermentor,
+            StepGroup::PrimaryFermentation => EquipmentGroup::Fermentor,
+            StepGroup::SecondaryFermentation => EquipmentGroup::Fermentor,
+        }
+    }
 }
 
 impl std::str::FromStr for StepGroup {
@@ -36,6 +49,7 @@ impl std::str::FromStr for StepGroup {
         }
     }
 }
+
 #[cfg(test)]
 pub mod mock {
     use super::*;
@@ -83,8 +97,33 @@ mod tests {
             "Secondary Fermentation"
         );
     }
-    #[test]
 
+    #[test]
+    fn test_group_equipment_group() {
+        assert_eq!(StepGroup::Aging.equipment_group(), EquipmentGroup::Keg);
+        assert_eq!(
+            StepGroup::Brewing.equipment_group(),
+            EquipmentGroup::HotLiquorTank
+        );
+        assert_eq!(
+            StepGroup::Carbonation.equipment_group(),
+            EquipmentGroup::CO2Tank
+        );
+        assert_eq!(
+            StepGroup::DiactylRest.equipment_group(),
+            EquipmentGroup::Fermentor
+        );
+        assert_eq!(
+            StepGroup::PrimaryFermentation.equipment_group(),
+            EquipmentGroup::Fermentor
+        );
+        assert_eq!(
+            StepGroup::SecondaryFermentation.equipment_group(),
+            EquipmentGroup::Fermentor
+        );
+    }
+
+    #[test]
     fn test_group_parse() {
         assert_eq!("Aging".parse(), Ok(StepGroup::Aging));
         assert_eq!("Brewing".parse(), Ok(StepGroup::Brewing));

@@ -24,6 +24,15 @@ impl Equipment {
             volume,
         }
     }
+
+    pub fn can_hold(&self, volume: &Volume) -> bool {
+        if let Volume::Liter(this) = self.volume.to_liter() {
+            if let Volume::Liter(that) = volume.to_liter() {
+                return this >= that;
+            }
+        }
+        panic!("should not happen");
+    }
 }
 
 #[cfg(test)]
@@ -57,5 +66,12 @@ mod tests {
         assert_eq!(equipment.system, system::mock::bbl5());
         assert_eq!(equipment.equipment_group, equipment_group::mock::mash_tun());
         assert_eq!(equipment.volume, volume::mock::gallon_us());
+    }
+
+    #[test]
+    fn test_equimpment_fits() {
+        let equipment = mock::equipment();
+        assert_eq!(equipment.can_hold(&Volume::GallonUS(12.3)), false);
+        assert_eq!(equipment.can_hold(&Volume::GallonUS(12.2)), true);
     }
 }

@@ -81,8 +81,8 @@ impl Factory {
         temp_vec.sort_by(|a, b| b.1.cmp(a.1));
         temp_vec
             .iter()
-            .map(|((system, stepgroup), duration)| {
-                (system.clone(), stepgroup.clone(), *duration.clone())
+            .map(|((system, step_group), duration)| {
+                (system.clone(), step_group.clone(), *duration.clone())
             })
             .collect()
     }
@@ -91,7 +91,26 @@ impl Factory {
         &self,
         acc_batches: Vec<(System, StepGroup, Duration)>,
     ) -> Vec<(System, EquipmentGroup, Duration)> {
-        unimplemented!()
+        // @TODO merge this with calculate_bottleneck_step to save time on building hashmaps and sorting them into vectors
+        let mut temp: HashMap<(System, EquipmentGroup), Duration> = HashMap::new();
+        for (system, step_group, duration) in &acc_batches {
+            let equipment_group = step_group.equipment_group();
+            match temp.get_mut(&(system.clone(), equipment_group.clone())) {
+                None => {
+                    temp.insert((system.clone(), equipment_group.clone()), duration.clone());
+                }
+                Some(dur) => *dur = *dur + duration.clone(),
+            };
+        }
+        // sort, descending on usage
+        let mut temp_vec: Vec<(&(System, EquipmentGroup), &Duration)> = temp.iter().collect();
+        temp_vec.sort_by(|a, b| b.1.cmp(&a.1));
+        temp_vec
+            .iter()
+            .map(|((system, equipment_group), duration)| {
+                (system.clone(), equipment_group.clone(), *duration.clone())
+            })
+            .collect()
     }
 }
 
