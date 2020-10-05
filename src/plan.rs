@@ -61,22 +61,21 @@ impl Plan {
                         format!("start batch {} {} {:?}", batch.beer.name, i, step_group),
                     );
 
-                    // set start first step in future
+                    // Constraint: set start first step in future
                     solver.assert(&step_start.ge(&start_horizon));
 
+                    // Constraint: set end of step .. or .. after start
                     let step_stop = ast::Int::new_const(
                         &ctx,
                         format!("stop batch {} {} {:?}", batch.beer.name, i, step_group),
                     );
-                    // set end of step .. or .. after start
+                    let (_earliest, latest) = interval.range();
                     solver.assert(&step_stop.ge(&ast::Int::add(
                         &ctx,
-                        &[
-                            &step_start,
-                            &ast::Int::from_i64(&ctx, interval.range().1.num_seconds()),
-                        ],
+                        &[&step_start, &ast::Int::from_i64(&ctx, latest.num_seconds())],
                     )));
-                    // @TODO: set what resource can be used
+
+                    // Constraint: set what resource can be used
                     let equipment_group = step_group.equipment_group();
                     let step_machine = ast::Dynamic::from_ast(&ast::Int::new_const(
                         &ctx,
@@ -94,15 +93,16 @@ impl Plan {
 
                     solver.assert(&one_of_these.member(&step_machine));
 
-                    // @TODO: set start of transfer operation after end of step
-                    // @TODO: set end of  transfer .. after start of transfer
-                    // @TODO: set start of clean operation after end of transfer
-                    // @TODO: set end of clean operation .. after start of clean
-                    // @TODO: set start of of next step ... after end of privious step
-                    // @FIXME: should be "end of transfer"instead of previous step;
+                    // Constraint: the next step may only start after the previous step is done
                     match &prev {
                         None => prev = Some(step_stop),
-                        Some(p) => solver.assert(&step_start.ge(&p)),
+                        Some(p) => {
+                            solver.assert(&step_start.ge(&p));
+                            // @FIXME: should be "end of transfer"instead of previous step;
+                            let transfer_time = step_group.post_process_time(batch.system);
+                            // @FIME: block the resource untill it is ready after cleaning
+                            let clean_time = step_group.post_process_time(batch.system);
+                        }
                     }
                 }
             }

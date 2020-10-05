@@ -1,4 +1,7 @@
+use chrono::Duration;
+
 use crate::equipment_group::EquipmentGroup;
+use crate::system::System;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum StepGroup {
@@ -32,6 +35,26 @@ impl StepGroup {
             StepGroup::PrimaryFermentation => EquipmentGroup::Fermentor,
             StepGroup::SecondaryFermentation => EquipmentGroup::Fermentor,
         }
+    }
+
+    pub fn post_process_time(&self, system: &System) -> Duration {
+        // @TODO: this is all made up, get some more sensable magic numbers
+        let factor = match system {
+            System::G5 | System::G10 => 1,
+            System::BBL5 => 2,
+            System::BBL7 => 5,
+            System::BBL10 => 10,
+            System::BBL15 => 20,
+        };
+        let dur = match self {
+            StepGroup::Aging => Duration::minutes(2),
+            StepGroup::Brewing => Duration::minutes(5),
+            StepGroup::Carbonation => Duration::minutes(1),
+            StepGroup::DiactylRest
+            | StepGroup::PrimaryFermentation
+            | StepGroup::SecondaryFermentation => Duration::minutes(10),
+        };
+        dur * factor
     }
 }
 
@@ -137,6 +160,34 @@ mod tests {
         assert_eq!(
             "Secondary Fermentation".parse(),
             Ok(StepGroup::SecondaryFermentation)
+        );
+    }
+
+    #[test]
+    fn test_group_post_process_time() {
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::G5),
+            Duration::minutes(2)
+        );
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::G10),
+            Duration::minutes(2)
+        );
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::BBL5),
+            Duration::minutes(4)
+        );
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::BBL7),
+            Duration::minutes(10)
+        );
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::BBL10),
+            Duration::minutes(20)
+        );
+        assert_eq!(
+            StepGroup::Aging.post_process_time(&System::BBL15),
+            Duration::minutes(40)
         );
     }
 }
