@@ -28,20 +28,21 @@ impl Interval {
 
     pub fn range(&self) -> (Duration, Duration) {
         let d = self.duration();
+        // TODO: easier configuration instead of magical constants
         match self {
-            Interval::Hours(x) => {
+            Interval::Hours(_x) => {
                 let delta = Duration::minutes(30);
                 (d - delta, d + delta)
             }
-            Interval::Days(x) => {
+            Interval::Days(_x) => {
                 let delta = Duration::hours(8);
                 (d - delta, d + delta)
             }
-            Interval::Weeks(x) => {
+            Interval::Weeks(_x) => {
                 let delta = Duration::days(4);
                 (d - delta, d + delta)
             }
-            Interval::Months(x) => {
+            Interval::Months(_x) => {
                 let delta = Duration::days(7);
                 (d - delta, d + delta)
             }
