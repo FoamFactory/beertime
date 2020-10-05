@@ -1,8 +1,9 @@
 use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
+use crate::steps::StepIterator;
 use crate::volume::Volume;
 
-use z3::{Config, Context, SatResult, Solver};
+use z3::{ast, ast::Ast, Config, Context, SatResult, Solver};
 
 pub struct Plan {
     dummy: u8,
@@ -12,27 +13,60 @@ impl Plan {
     pub fn new() -> Self {
         Self { dummy: 4 }
     }
-    pub fn do_magic(&self) {
-        let mut config = Config::new();
-        config.set_proof_generation(false);
-        config.set_model_generation(true);
-        config.set_debug_ref_count(false);
-        config.set_timeout_msec(5_000);
-        let context = Context::new(&config);
-        let solver = Solver::new(&context);
-        // for batch in batches
-        //   for step in batch
-        //      set start first step in future
-        //      set end of step .. or .. after start
-        //      set start of transfer operation after end of step
-        //      set end of  transfer .. after start of transfer
-        //      set start of of next step ... after end of transfer
-        //      set start of clean operation after end of transfer
-        //      set end of clean operation .. after start of clean
+
+    pub fn do_magic(&self, batches_needed: &[BatchNeed]) {
+        let mut cfg = Config::new();
+        cfg.set_proof_generation(false);
+        cfg.set_model_generation(true);
+        cfg.set_debug_ref_count(false);
+        cfg.set_timeout_msec(5_000);
+        let ctx = Context::new(&cfg);
+        let solver = Solver::new(&ctx);
+        for (i, batch) in batches_needed.iter().enumerate() {
+            if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
+                assert!(batch.volume.ge(max_volume));
+                let mut prev = None;
+                let step_iter = StepIterator::new(steps);
+                for (step_group, interval) in step_iter {
+                    // @todo set start first step in future
+                    let stop_start = ast::Int::new_const(
+                        &ctx,
+                        format!("start batch {} {} {:?}", batch.beer.name, i, step_group),
+                    );
+                    let step_stop = ast::Int::new_const(
+                        &ctx,
+                        format!("stop batch {} {} {:?}", batch.beer.name, i, step_group),
+                    );
+                    // set end of step .. or .. after start
+                    solver.assert(&step_stop.ge(&ast::Int::add(
+                        &ctx,
+                        &[
+                            &stop_start,
+                            &ast::Int::from_i64(&ctx, interval.range().1.num_seconds()),
+                        ],
+                    )));
+                    // @TODO: set what resource can be used
+
+                    // @TODO: set start of transfer operation after end of step
+                    // @TODO: set end of  transfer .. after start of transfer
+                    // @TODO: set start of clean operation after end of transfer
+                    // @TODO: set end of clean operation .. after start of clean
+                    // @TODO: set start of of next step ... after end of privious step
+                    // @FIXME: should be "end of transfer"instead of previous step;
+                    match &prev {
+                        None => prev = Some(step_stop),
+                        Some(p) => solver.assert(&stop_start.ge(&p)),
+                    }
+                }
+            }
+        }
         // avoid duplicate use of machine during operation, transfer or cleaning
         // set transfer and clean operation only during office hours
         // set transfer and clean operation nod during holidays
         //todo bottleneck first
+
+        //todo: solver.optimize(ctx, solver, &self.containers);
+
         match solver.check() {
             SatResult::Sat => {
                 let model = solver.get_model();

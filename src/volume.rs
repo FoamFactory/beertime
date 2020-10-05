@@ -60,6 +60,16 @@ impl Volume {
         }
         panic!("Should not happen");
     }
+
+    pub fn ge(&self, other: &Volume) -> bool {
+        //todo: change this into an impl std::num::cmp
+        if let Volume::Liter(this) = self.to_liter() {
+            if let Volume::Liter(that) = other.to_liter() {
+                return this >= that;
+            }
+        }
+        panic!("Should not happen");
+    }
 }
 
 impl std::str::FromStr for Volume {
@@ -141,5 +151,14 @@ mod tests {
 
         let need_liters = Volume::Liter(100.0);
         assert_eq!(need_liters.full_batches(&size), 89);
+    }
+
+    #[test]
+    fn test_volume_eq() {
+        let ten = Volume::GallonUS(10.0);
+        let one = Volume::GallonUS(1.0);
+        assert_eq!(ten.ge(&one), true);
+        assert_eq!(one.ge(&ten), false);
+        assert_eq!(ten.ge(&ten), true);
     }
 }
