@@ -1,20 +1,21 @@
+use std::collections::HashMap;
+
+use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
+
 use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
 use crate::steps::StepIterator;
-use crate::volume::Volume;
-
-use z3::{ast, ast::Ast, Config, Context, SatResult, Solver};
 
 pub struct Plan {
-    dummy: u8,
+    _dummy: u8,
 }
 
 impl Plan {
     pub fn new() -> Self {
-        Self { dummy: 4 }
+        Self { _dummy: 4 }
     }
 
-    pub fn do_magic(&self, batches_needed: &[BatchNeed]) {
+    pub fn do_magic(&self, factory: &Factory, batches_needed: &[BatchNeed]) {
         let mut cfg = Config::new();
         cfg.set_proof_generation(false);
         cfg.set_model_generation(true);
@@ -22,6 +23,30 @@ impl Plan {
         cfg.set_timeout_msec(5_000);
         let ctx = Context::new(&cfg);
         let solver = Solver::new(&ctx);
+
+        let mut machines = HashMap::new();
+        let mut i = 0;
+        for equipment in factory.equipments.values() {
+            let suited =
+                factory.list_suited_equipment(&equipment.system, &equipment.equipment_group);
+            let one_of_these = ast::Set::new_const(
+                &ctx,
+                format!(
+                    "machines capable for {:?} {:?}",
+                    equipment.system, equipment.equipment_group
+                ),
+                &Sort::int(&ctx),
+            );
+            for seq in &suited {
+                let suit = ast::Int::new_const(&ctx, format!("Machine {}", seq.name));
+                solver.assert(&suit._eq(&ast::Int::new_const(&ctx, i)));
+                i += 1;
+            }
+            machines.insert(
+                (equipment.system.clone(), equipment.equipment_group.clone()),
+                one_of_these,
+            );
+        }
         for (i, batch) in batches_needed.iter().enumerate() {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
@@ -29,7 +54,7 @@ impl Plan {
                 let step_iter = StepIterator::new(steps);
                 for (step_group, interval) in step_iter {
                     // @todo set start first step in future
-                    let stop_start = ast::Int::new_const(
+                    let step_start = ast::Int::new_const(
                         &ctx,
                         format!("start batch {} {} {:?}", batch.beer.name, i, step_group),
                     );
@@ -41,11 +66,27 @@ impl Plan {
                     solver.assert(&step_stop.ge(&ast::Int::add(
                         &ctx,
                         &[
-                            &stop_start,
+                            &step_start,
                             &ast::Int::from_i64(&ctx, interval.range().1.num_seconds()),
                         ],
                     )));
                     // @TODO: set what resource can be used
+                    let equipment_group = step_group.equipment_group();
+                    let step_machine = ast::Dynamic::from_ast(&ast::Int::new_const(
+                        &ctx,
+                        format!(
+                            "machine for batch {} {} {:?}",
+                            batch.beer.name, i, step_group
+                        ),
+                    ));
+                    let one_of_these = machines
+                        .get(&(batch.system.clone(), equipment_group.clone()))
+                        .expect(&format!(
+                            "Cannot find machines for system {:?} and group {:?}",
+                            batch.system, equipment_group
+                        ));
+
+                    solver.assert(&one_of_these.member(&step_machine));
 
                     // @TODO: set start of transfer operation after end of step
                     // @TODO: set end of  transfer .. after start of transfer
@@ -55,7 +96,7 @@ impl Plan {
                     // @FIXME: should be "end of transfer"instead of previous step;
                     match &prev {
                         None => prev = Some(step_stop),
-                        Some(p) => solver.assert(&stop_start.ge(&p)),
+                        Some(p) => solver.assert(&step_start.ge(&p)),
                     }
                 }
             }
@@ -69,7 +110,7 @@ impl Plan {
 
         match solver.check() {
             SatResult::Sat => {
-                let model = solver.get_model();
+                let _model = solver.get_model();
                 //let used = model.eval(z3var).unwrap().as_bool().unwrap();
             }
             SatResult::Unsat => {
@@ -107,6 +148,6 @@ mod tests {
     #[test]
     fn test_plan_new() {
         let plan = mock::plan();
-        assert_eq!(plan.dummy, 4);
+        assert_eq!(plan._dummy, 4);
     }
 }
