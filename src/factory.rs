@@ -36,7 +36,7 @@ impl Factory {
                 .expect(&format!("Unknow beer: {}", beer_name));
             //FIXME: we now take the first recipy that is registered,
             //       this should be done by the solver
-            let (system, (r#yield, steps)) = beer
+            let (system, (r#yield, _steps)) = beer
                 .recipy
                 .map
                 .iter()
