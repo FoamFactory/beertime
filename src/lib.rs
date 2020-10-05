@@ -10,6 +10,7 @@ pub mod steps;
 pub mod style;
 pub mod system;
 pub mod volume;
+pub mod work;
 
 #[cfg(test)]
 mod tests {
