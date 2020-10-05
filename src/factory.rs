@@ -212,9 +212,10 @@ mod tests {
             factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::CO2Tank),
             Vec::<&Equipment>::new()
         );
-        assert_eq!(
-            factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::MashTun),
-            vec![&equipment_1, &equipment_2]
+        let suited = factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::MashTun);
+        assert!(
+            (suited == vec![&equipment_1, &equipment_2])
+                || (suited == vec![&equipment_2, &equipment_1])
         );
     }
 }
