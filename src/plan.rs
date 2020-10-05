@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::batchneed::BatchNeed;
@@ -47,17 +48,22 @@ impl Plan {
                 one_of_these,
             );
         }
+        let now: DateTime<Utc> = Utc::now();
+        let start_horizon = ast::Int::from_i64(&ctx, now.timestamp());
         for (i, batch) in batches_needed.iter().enumerate() {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
                 let mut prev = None;
                 let step_iter = StepIterator::new(steps);
                 for (step_group, interval) in step_iter {
-                    // @todo set start first step in future
                     let step_start = ast::Int::new_const(
                         &ctx,
                         format!("start batch {} {} {:?}", batch.beer.name, i, step_group),
                     );
+
+                    // set start first step in future
+                    solver.assert(&step_start.ge(&start_horizon));
+
                     let step_stop = ast::Int::new_const(
                         &ctx,
                         format!("stop batch {} {} {:?}", batch.beer.name, i, step_group),
