@@ -4,6 +4,7 @@ pub mod equipment;
 pub mod equipment_group;
 pub mod factory;
 pub mod interval;
+pub mod plan;
 pub mod recipy;
 pub mod step_group;
 pub mod steps;
