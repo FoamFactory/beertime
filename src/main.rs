@@ -1,8 +1,11 @@
+use chrono::{DateTime, Utc};
+
 use beertime::beer::Beer;
 use beertime::equipment::Equipment;
 use beertime::equipment_group::EquipmentGroup;
 use beertime::factory::Factory;
 use beertime::interval::Interval;
+use beertime::plan::Plan;
 use beertime::recipy::Recipy;
 use beertime::steps::Steps;
 use beertime::style::Style;
@@ -280,16 +283,21 @@ fn main() {
     assert_eq!(batches_needed.len(), 24);
     //FIXME: group theses steps together; there is too much hash/vector building and sorting going on
     println!("\nbatches needed: {:?}", batches_needed);
-    let most_needed_steps = factory.calculate_bottleneck_step(batches_needed);
+    let most_needed_steps = factory.calculate_bottleneck_step(batches_needed.as_slice());
     println!("\nbottleneck step: {:?}", most_needed_steps);
-    let most_needed_equipment = factory.calculate_bottleneck_equipment(most_needed_steps);
+    let most_needed_equipment =
+        factory.calculate_bottleneck_equipment(most_needed_steps.as_slice());
     println!("\nbottleneck equipment: {:?}", most_needed_equipment);
-    let most_bottlenecked_equipment = factory.calculate_bottleneck(most_needed_equipment);
+    let most_bottlenecked_equipment =
+        factory.calculate_bottleneck(most_needed_equipment.as_slice());
     println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
     //todo plan around bottleneck
-    //todo generate plan list
-    //generate gantt chart
-    //calculate oee's
+    let plan = Plan::new();
+    let now = chrono::offset::Utc::now(); //DateTime::<Utc>::now();
+    let solution = plan.plan(&factory, batches_needed.as_slice(), now);
+    // @TODO: Generate plan list
+    // @TODO: generate gantt chart
+    // @TODO: calculate oee's
 
     println!("ok");
 }

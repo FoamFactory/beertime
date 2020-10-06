@@ -13,20 +13,21 @@ pub struct Plan {
 
 impl Plan {
     pub fn new() -> Self {
+        // @TODO: the class is probably obsolete, it could be a public function
         Self { _dummy: 4 }
     }
 
-    pub fn do_magic(
+    pub fn plan(
         &self,
         factory: &Factory,
         batches_needed: &[BatchNeed],
         earliest_start: DateTime<Utc>,
-    ) {
+    ) -> Vec<Plan> {
         let mut cfg = Config::new();
         cfg.set_proof_generation(false);
         cfg.set_model_generation(true);
         cfg.set_debug_ref_count(false);
-        cfg.set_timeout_msec(5_000);
+        //cfg.set_timeout_msec(5_000);
         let ctx = Context::new(&cfg);
         let solver = Solver::new(&ctx);
 
@@ -54,6 +55,7 @@ impl Plan {
             );
         }
         let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
+        let mut counter = 0;
         for (i, batch) in batches_needed.iter().enumerate() {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
@@ -108,7 +110,7 @@ impl Plan {
                             batch.system, equipment_group
                         ));
 
-                    solver.assert(&one_of_these.member(&machine_step));
+                    //solver.assert(&one_of_these.member(&machine_step));
 
                     // Constraint: the next step may only start after the previous step is done
                     match &prev {
@@ -164,15 +166,17 @@ impl Plan {
                                 &Sort::int(&ctx),
                             ));
                             // Constraint: clean machine is the sames as the machine that made it dirty
-                            solver.assert(&machine_clean._eq(&machine_step));
+                            //solver.assert(&machine_clean._eq(&machine_step));
 
                             // Constraint: Next step's machine is not this step machine
                             let prev_match_set = ast::Set::fresh_const(&ctx, &format!("this machine is not the same as prev step for batch {} {} {:?}", batch.beer.name, i, step_group), &Sort::int(&ctx));
                             prev_match_set.add(&prev_machine_step);
-                            solver.assert(&prev_match_set.member(&machine_step).not());
+                            //solver.assert(&prev_match_set.member(&machine_step).not());
                         }
                     }
                 }
+                // @TODO: cleaning of the last step...
+                counter += 3; // the step, the transfer, the cleaning
             }
         }
         // avoid duplicate use of machine during operation, transfer or cleaning
@@ -182,13 +186,18 @@ impl Plan {
 
         //todo: solver.optimize(ctx, solver, &self.containers);
 
-        match solver.check() {
+        let solution = match solver.check() {
             SatResult::Sat => {
-                let _model = solver.get_model();
+                let model = solver.get_model();
                 //let used = model.eval(z3var).unwrap().as_bool().unwrap();
+                let mut solution = Vec::with_capacity(counter);
+                println!("{:?}", model);
+
+                solution
             }
             SatResult::Unsat => {
-                // println!("No solution found!");
+                println!("No solution found!");
+                panic!("TODO: better error handling");
             }
             SatResult::Unknown => {
                 print!(
@@ -197,9 +206,10 @@ impl Plan {
                 );
                 panic!("TODO: better error handling");
             }
-        }
+        };
+
+        solution
     }
-    // @FIXME: return the planning outcome
 }
 
 #[cfg(test)]
@@ -229,6 +239,6 @@ mod tests {
         let wishlist = vec![];
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
-        plan.do_magic(&factory, batches_needed.as_slice(), now);
+        plan.plan(&factory, batches_needed.as_slice(), now);
     }
 }

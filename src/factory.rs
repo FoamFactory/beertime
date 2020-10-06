@@ -54,7 +54,7 @@ impl Factory {
 
     pub fn calculate_bottleneck_step(
         &self,
-        batches: Vec<BatchNeed>,
+        batches: &[BatchNeed],
     ) -> Vec<(System, StepGroup, Duration)> {
         let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
         for batch in batches {
@@ -89,11 +89,11 @@ impl Factory {
 
     pub fn calculate_bottleneck_equipment(
         &self,
-        acc_batches: Vec<(System, StepGroup, Duration)>,
+        acc_batches: &[(System, StepGroup, Duration)],
     ) -> Vec<(System, EquipmentGroup, Duration)> {
         // @TODO merge this with calculate_bottleneck_step to save time on building hashmaps and sorting them into vectors
         let mut temp: HashMap<(System, EquipmentGroup), Duration> = HashMap::new();
-        for (system, step_group, duration) in &acc_batches {
+        for (system, step_group, duration) in acc_batches {
             let equipment_group = step_group.equipment_group();
             match temp.get_mut(&(system.clone(), equipment_group.clone())) {
                 None => {
@@ -130,10 +130,10 @@ impl Factory {
 
     pub fn calculate_bottleneck(
         &self,
-        acc_equipment: Vec<(System, EquipmentGroup, Duration)>,
+        acc_equipment: &[(System, EquipmentGroup, Duration)],
     ) -> Vec<(System, EquipmentGroup, Duration)> {
         let mut temp = HashMap::with_capacity(acc_equipment.len());
-        for (system, equipment_group, duration) in &acc_equipment {
+        for (system, equipment_group, duration) in acc_equipment {
             let suited = self.list_suited_equipment(system, equipment_group);
             assert!(suited.len() > 0);
             let avg_duration = *duration / (suited.len() as i32);
