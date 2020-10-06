@@ -16,7 +16,12 @@ impl Plan {
         Self { _dummy: 4 }
     }
 
-    pub fn do_magic(&self, factory: &Factory, batches_needed: &[BatchNeed]) {
+    pub fn do_magic(
+        &self,
+        factory: &Factory,
+        batches_needed: &[BatchNeed],
+        earliest_start: DateTime<Utc>,
+    ) {
         let mut cfg = Config::new();
         cfg.set_proof_generation(false);
         cfg.set_model_generation(true);
@@ -48,13 +53,24 @@ impl Plan {
                 one_of_these,
             );
         }
-        let now: DateTime<Utc> = Utc::now();
-        let start_horizon = ast::Int::from_i64(&ctx, now.timestamp());
+        let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
         for (i, batch) in batches_needed.iter().enumerate() {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
                 let mut prev = None;
                 let step_iter = StepIterator::new(steps);
+                /*
+                ===================================================================================================================
+                                        +---------------------------------------------------+------------------------------------
+                Equipment 1             | Step 1, Batch A  | Transfer               | Clean | Step 1, Batch C                   >
+                                        +------------------+        from resource 1 +-------+------------------------------------
+                Equipment 2                                |          to resource 2 | Step 2, Batch A                        >
+                                                           +-----------------------------------------------------------------
+                Manual labour                               xxxx               xxxx   xxxxx
+                ========================^==================^========================^=======^========================================
+                Time                    S1A                E1A                      S2A     S1F
+                variable                step_start         step_stop               next_go  resource_available
+                */
                 for (step_group, interval) in step_iter {
                     let step_start = ast::Int::new_const(
                         &ctx,
@@ -131,11 +147,7 @@ impl Plan {
             }
         }
     }
-}
-
-pub fn plan(_factory: &Factory, _batches_needed: &[BatchNeed]) -> Plan {
-    let plan = Plan::new();
-    plan
+    // @FIXME: return the planning outcome
 }
 
 #[cfg(test)]
@@ -150,10 +162,21 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::factory;
 
     #[test]
     fn test_plan_new() {
         let plan = mock::plan();
         assert_eq!(plan._dummy, 4);
+    }
+    #[test]
+    fn test_plan_do_magic() {
+        let plan = mock::plan();
+        let factory = factory::mock::factory();
+        let now: DateTime<Utc> = Utc::now();
+        let wishlist = vec![];
+        // @FIXME: better test case: real beer in factory
+        let batches_needed = factory.calculate_batches(wishlist);
+        plan.do_magic(&factory, batches_needed.as_slice(), now);
     }
 }
