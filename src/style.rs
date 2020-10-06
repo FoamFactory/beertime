@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use crate::r#type::Type;
+
 #[derive(Debug, PartialEq, Serialize)]
 pub enum Style {
     AmberLager,
@@ -33,7 +35,15 @@ impl Style {
             Style::SpecialtyStout => "Specialty Stout",
         }
     }
+
+    pub fn r#type(&self) -> Type {
+        match self {
+            Style::AmberLager | Style::Kellerbier | Style::Pilsner => Type::Lager,
+            _ => Type::Ale,
+        }
+    }
 }
+
 impl std::str::FromStr for Style {
     type Err = ();
 
@@ -55,6 +65,7 @@ impl std::str::FromStr for Style {
         }
     }
 }
+
 #[cfg(test)]
 pub mod mock {
     use super::*;
@@ -142,5 +153,21 @@ mod tests {
         assert_eq!("Pilsner".parse(), Ok(Style::Pilsner));
         assert_eq!("Smoked Ale".parse(), Ok(Style::SmokedAle));
         assert_eq!("Specialty Stout".parse(), Ok(Style::SpecialtyStout));
+    }
+
+    #[test]
+    fn test_style_type() {
+        assert_eq!(mock::amber_lager().r#type(), Type::Lager);
+        assert_eq!(mock::kellerbier().r#type(), Type::Lager);
+        assert_eq!(mock::pilsner().r#type(), Type::Lager);
+
+        assert_eq!(mock::blonde_ale().r#type(), Type::Ale);
+        assert_eq!(mock::california_common().r#type(), Type::Ale);
+        assert_eq!(mock::fruit_beer().r#type(), Type::Ale);
+        assert_eq!(mock::ipa().r#type(), Type::Ale);
+        assert_eq!(mock::imperial_stout().r#type(), Type::Ale);
+        assert_eq!(mock::irish_red_ale().r#type(), Type::Ale);
+        assert_eq!(mock::smoked_ale().r#type(), Type::Ale);
+        assert_eq!(mock::specialty_stout().r#type(), Type::Ale);
     }
 }
