@@ -44,6 +44,13 @@ impl Steps {
         self.map.get(key)
     }
 
+    pub fn needs_diactyl_rest(&self) -> bool {
+        match self.map.get(&StepGroup::DiactylRest) {
+            None => false,
+            Some(_x) => true,
+        }
+    }
+
     pub fn iter(&self) -> StepIterator {
         StepIterator::new(self)
     }
@@ -135,6 +142,7 @@ mod tests {
         assert_eq!(
             steps.range(),
             (Duration::seconds(18991800), Duration::seconds(21011400))
-        )
+        );
+        assert_eq!(steps.needs_diactyl_rest(), false);
     }
 }

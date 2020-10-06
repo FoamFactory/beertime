@@ -7,7 +7,7 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn diactyl_rest(&self) -> bool {
+    pub fn needs_diactyl_rest(&self) -> bool {
         self == &Type::Lager
     }
 }
@@ -18,7 +18,7 @@ pub mod test {
 
     #[test]
     fn test_type_diactyl_rest() {
-        assert_eq!(Type::Ale.diactyl_rest(), false);
-        assert_eq!(Type::Lager.diactyl_rest(), true);
+        assert_eq!(Type::Ale.needs_diactyl_rest(), false);
+        assert_eq!(Type::Lager.needs_diactyl_rest(), true);
     }
 }
