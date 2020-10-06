@@ -292,9 +292,8 @@ fn main() {
         factory.calculate_bottleneck(most_needed_equipment.as_slice());
     println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
     //todo plan around bottleneck
-    let plan = Plan::new();
     let now = chrono::offset::Utc::now(); //DateTime::<Utc>::now();
-    let solution = plan.plan(&factory, batches_needed.as_slice(), now);
+    let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
     // @TODO: Generate plan list
     // @TODO: generate gantt chart
     // @TODO: calculate oee's

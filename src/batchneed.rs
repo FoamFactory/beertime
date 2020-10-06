@@ -2,7 +2,7 @@ use crate::beer::Beer;
 use crate::system::System;
 use crate::volume::Volume;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BatchNeed<'a> {
     pub beer: &'a Beer,
     pub system: &'a System,

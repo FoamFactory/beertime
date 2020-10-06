@@ -1,28 +1,43 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+use chrono::prelude::*;
+//use chrono::{DateTime, Utc};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
+use crate::action::Action;
 use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
 use crate::steps::StepIterator;
 
-pub struct Plan {
-    _dummy: u8,
+#[derive(Debug, PartialEq)]
+pub struct Plan<'a> {
+    batch: BatchNeed<'a>,
+    action: Action,
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
 }
 
-impl Plan {
-    pub fn new() -> Self {
+impl<'a> Plan<'a> {
+    pub fn new(
+        batch: BatchNeed<'a>,
+        action: Action,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> Self {
         // @TODO: the class is probably obsolete, it could be a public function
-        Self { _dummy: 4 }
+        Self {
+            batch,
+            action,
+            start,
+            end,
+        }
     }
 
     pub fn plan(
-        &self,
-        factory: &Factory,
-        batches_needed: &[BatchNeed],
+        factory: &'a Factory,
+        batches_needed: &'a [BatchNeed],
         earliest_start: DateTime<Utc>,
-    ) -> Vec<Plan> {
+    ) -> Vec<Plan<'a>> {
         let mut cfg = Config::new();
         cfg.set_proof_generation(false);
         cfg.set_model_generation(true);
@@ -215,30 +230,47 @@ impl Plan {
 #[cfg(test)]
 pub mod mock {
     use super::*;
+    use crate::action;
+    use crate::batchneed;
+    use crate::beer;
+    use crate::system;
 
-    pub fn plan() -> Plan {
-        Plan::new()
+    pub fn plan<'a>(abeer: &'a beer::Beer, system: &'a system::System) -> Plan<'a> {
+        let batchneed = batchneed::mock::batchneed(abeer, system);
+        let action = action::mock::process();
+        let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
+        let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
+
+        Plan::new(batchneed, action, start, end)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::action;
+    use crate::beer;
     use crate::factory;
+    use crate::system;
 
     #[test]
     fn test_plan_new() {
-        let plan = mock::plan();
-        assert_eq!(plan._dummy, 4);
+        let abeer = beer::mock::beer();
+        let system = system::mock::bbl5();
+        let plan = mock::plan(&abeer, &system);
+        assert_eq!(plan.batch.beer, &abeer);
+        assert_eq!(plan.batch.system, &system);
+        assert_eq!(plan.action, action::mock::process());
+        assert!(plan.start < plan.end);
     }
+
     #[test]
     fn test_plan_do_magic() {
-        let plan = mock::plan();
         let factory = factory::mock::factory();
         let now: DateTime<Utc> = Utc::now();
         let wishlist = vec![];
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
-        plan.plan(&factory, batches_needed.as_slice(), now);
+        Plan::plan(&factory, batches_needed.as_slice(), now);
     }
 }
