@@ -1,6 +1,7 @@
 use crate::volume::Volume;
+use serde::Serialize;
 
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize)]
 pub enum System {
     G5,
     G10,

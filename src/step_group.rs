@@ -1,9 +1,10 @@
 use chrono::Duration;
+use serde::Serialize;
 
 use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub enum StepGroup {
     Brewing,
     PrimaryFermentation,

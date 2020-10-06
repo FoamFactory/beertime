@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use crate::recipy::Recipy;
 use crate::style::Style;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Beer {
     pub name: String,
     style: Style,

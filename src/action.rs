@@ -1,6 +1,7 @@
 use crate::equipment::Equipment;
+use serde::Serialize;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub enum Action<'a> {
     Process(&'a Equipment),
     Clean(&'a Equipment),

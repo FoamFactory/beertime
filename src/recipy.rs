@@ -1,10 +1,11 @@
+use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::steps::Steps;
 use crate::system::System;
 use crate::volume::Volume;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Recipy {
     pub map: HashMap<System, (Volume, Steps)>,
 }

@@ -2,13 +2,15 @@ use std::collections::HashMap;
 
 use chrono::prelude::*;
 use chrono::{DateTime, Duration, Utc};
+use serde::Serialize;
+use tera::{Context as TContext, Tera};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Plan<'a> {
     batch: &'a BatchNeed<'a>,
     action: Action<'a>,
@@ -281,6 +283,12 @@ impl<'a> Plan<'a> {
     //        pla_per_beer,
     //        pla_per_style,
     //        pla_per_batch
+
+    pub fn pla_basic(tera: &Tera, planning: &[Plan]) -> String {
+        let mut context = TContext::new();
+        context.insert("planning", planning);
+        tera.render("pla", &context).unwrap()
+    }
 }
 
 #[cfg(test)]

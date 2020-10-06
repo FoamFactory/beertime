@@ -1,11 +1,12 @@
 use chrono::Duration;
+use serde::Serialize;
 
 use std::collections::HashMap;
 
 use crate::interval::Interval;
 use crate::step_group::StepGroup;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Steps {
     map: HashMap<StepGroup, Interval>,
 }

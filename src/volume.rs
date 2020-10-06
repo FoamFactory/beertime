@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq)]
+use serde::Serialize;
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum Volume {
     GallonUS(f32),
     GallonUSDry(f32),

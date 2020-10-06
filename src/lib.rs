@@ -11,6 +11,7 @@ pub mod step_group;
 pub mod steps;
 pub mod style;
 pub mod system;
+pub mod templates;
 pub mod volume;
 pub mod work;
 
