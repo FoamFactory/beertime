@@ -28,6 +28,7 @@ impl Factory {
 
     pub fn calculate_batches(&self, wishlist: Vec<(&'static str, Volume)>) -> Vec<BatchNeed> {
         let mut batches_needed = Vec::with_capacity(wishlist.len());
+        let mut id = 1;
         for (beer_name, quantity) in wishlist {
             let beer = self
                 .beers
@@ -43,8 +44,9 @@ impl Factory {
                 .expect(&format!("Unknown recipy for beer: {}", beer_name));
             let counts = quantity.full_batches(r#yield);
             for _i in 0..counts {
-                let batch = BatchNeed::new(beer, system, r#yield.clone());
+                let batch = BatchNeed::new(id, beer, system, r#yield.clone());
                 batches_needed.push(batch);
+                id += 1;
             }
         }
 

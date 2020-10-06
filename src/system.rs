@@ -22,6 +22,17 @@ impl System {
             System::BBL15 => "15BBL",
         }
     }
+
+    pub fn volume(&self) -> Volume {
+        match self {
+            System::G5 => Volume::GallonUS(5.0),
+            System::G10 => Volume::GallonUS(10.0),
+            System::BBL5 => Volume::GallonUS(210.0),
+            System::BBL7 => Volume::GallonUS(294.0),
+            System::BBL10 => Volume::GallonUS(420.0),
+            System::BBL15 => Volume::GallonUS(630.0),
+        }
+    }
 }
 
 impl std::str::FromStr for System {
@@ -35,19 +46,6 @@ impl std::str::FromStr for System {
             "10BBL" => Ok(System::BBL10),
             "15BBL" => Ok(System::BBL15),
             _ => Err(()),
-        }
-    }
-}
-
-impl System {
-    pub fn volume(&self) -> Volume {
-        match self {
-            System::G5 => Volume::GallonUS(5.0),
-            System::G10 => Volume::GallonUS(10.0),
-            System::BBL5 => Volume::GallonUS(210.0),
-            System::BBL7 => Volume::GallonUS(294.0),
-            System::BBL10 => Volume::GallonUS(420.0),
-            System::BBL15 => Volume::GallonUS(630.0),
         }
     }
 }

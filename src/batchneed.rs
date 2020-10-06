@@ -1,23 +1,35 @@
 use serde::Serialize;
 
 use crate::beer::Beer;
+use crate::interval::Interval;
+use crate::step_group::StepGroup;
 use crate::system::System;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct BatchNeed<'a> {
+    pub id: usize,
     pub beer: &'a Beer,
     pub system: &'a System,
     pub volume: Volume,
 }
 
 impl<'a> BatchNeed<'a> {
-    pub fn new(beer: &'a Beer, system: &'a System, volume: Volume) -> Self {
+    pub fn new(id: usize, beer: &'a Beer, system: &'a System, volume: Volume) -> Self {
         Self {
+            id,
             beer,
             system,
             volume,
         }
+    }
+
+    pub fn steps(&self) -> Vec<(StepGroup, Interval)> {
+        if let Some((max_volume, steps)) = self.beer.recipy.get(self.system) {
+            assert!(self.volume.ge(max_volume));
+            return steps.iter().collect();
+        }
+        panic!("Should not happen");
     }
 }
 
@@ -27,7 +39,7 @@ pub mod mock {
     use crate::volume;
 
     pub fn batchneed<'a>(beer: &'a Beer, system: &'a System) -> BatchNeed<'a> {
-        BatchNeed::new(beer, system, volume::mock::gallon_us())
+        BatchNeed::new(1, beer, system, volume::mock::gallon_us())
     }
 }
 
@@ -43,6 +55,7 @@ mod tests {
         let beer = beer::mock::beer();
         let system = system::mock::bbl5();
         let batchneed = mock::batchneed(&beer, &system);
+        assert_eq!(batchneed.id, 1);
         assert_eq!(batchneed.beer, &beer);
         assert_eq!(batchneed.system, &system);
         assert_eq!(batchneed.volume, volume::mock::gallon_us());

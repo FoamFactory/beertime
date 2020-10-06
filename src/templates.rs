@@ -8,8 +8,13 @@ pub fn load_templates() -> Tera {
             "pla",
             r#"{% extends "base" %}
 {% block hey %}
-    {% for plan in planning %}
-        {{ plan.batch.beer.name }} System {{ plan.batch.system }} {# plan.batch.volume | lookup #}
+    {% for id, plans in planning %}
+        {{ id }}
+        {% for plan in plans %}
+            {{ plan.batch.beer.name }} System {{ plan.batch.system }}
+            {{ plan.action }}
+            {# plan.batch.volume | lookup #}
+        {% endfor %}
     {% endfor %}
 {% endblock hey %}
 "#,

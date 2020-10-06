@@ -18,6 +18,7 @@ impl Recipy {
     }
 
     pub fn new(system: System, r#yield: Volume, steps: Steps) -> Self {
+        assert!(system.volume().ge(&r#yield));
         let mut recipy = Recipy::blank();
         recipy.map.insert(system, (r#yield, steps));
 

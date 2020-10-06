@@ -265,9 +265,9 @@ fn load_recipies(factory: &mut Factory) {
 
 fn wishlist(_factory: &Factory) -> Vec<(&'static str, Volume)> {
     vec![
-        ("Bier", Volume::GallonUS(90.0)),
-        ("Anti-Scurvy Elixir", Volume::GallonUS(90.0)),
-        ("Autumn's Early Arrival Blonde", Volume::GallonUS(60.0)),
+        ("Bier", Volume::GallonUS(30.0)),
+        ("Anti-Scurvy Elixir", Volume::GallonUS(70.0)),
+        ("Autumn's Early Arrival Blonde", Volume::GallonUS(90.0)),
     ]
 }
 
@@ -281,7 +281,7 @@ fn main() {
     load(&mut factory);
     let wishlist = wishlist(&factory);
     let batches_needed = factory.calculate_batches(wishlist);
-    assert_eq!(batches_needed.len(), 24);
+    assert_eq!(batches_needed.len(), 19);
     //FIXME: group theses steps together; there is too much hash/vector building and sorting going on
     println!("\nbatches needed: {:?}", batches_needed);
     let most_needed_steps = factory.calculate_bottleneck_step(batches_needed.as_slice());
@@ -297,8 +297,8 @@ fn main() {
     let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
     println!();
     println!("{:?}", solution);
-    let tera = load_templates();
-    let pla = Plan::pla_basic(&tera, solution.as_slice());
+    //let tera = load_templates();
+    let pla = Plan::pla_basic(/*&tera, */ solution.as_slice(), Plan::sort_by_batch);
     println!();
     println!("{}", pla);
     // @TODO: Generate plan list

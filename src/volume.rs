@@ -92,7 +92,7 @@ pub mod mock {
     use super::*;
 
     pub fn gallon_us() -> Volume {
-        Volume::GallonUS(12.2)
+        Volume::GallonUS(5.0)
     }
 
     pub fn gallon_us_dry() -> Volume {
@@ -119,8 +119,8 @@ mod tests {
     #[test]
     fn test_volume_convert_liter_gallonus() {
         assert_eq!(mock::liter().to_liter(), Volume::Liter(12.2));
-        assert_eq!(mock::gallon_us().to_gallon_us(), Volume::GallonUS(12.2));
-        assert_eq!(mock::gallon_us().to_liter(), Volume::Liter(46.182022));
+        assert_eq!(mock::gallon_us().to_gallon_us(), Volume::GallonUS(5.0));
+        assert_eq!(mock::gallon_us().to_liter(), Volume::Liter(18.92706));
         assert_eq!(
             Volume::Liter(46.18202).to_gallon_us(),
             Volume::GallonUS(12.199998)
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_volume_lookup() {
-        assert_eq!(&mock::gallon_us().lookup(), "12.2G");
+        assert_eq!(&mock::gallon_us().lookup(), "5G");
         assert_eq!(&mock::gallon_us_dry().lookup(), "12.2 US Dry Gallon");
         assert_eq!(&mock::gallon_imperial().lookup(), "12.2 Imperial Gallon");
         assert_eq!(&mock::liter().lookup(), "12.2 liters");

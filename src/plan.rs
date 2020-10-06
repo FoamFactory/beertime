@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use chrono::prelude::*;
 use chrono::{DateTime, Duration, Utc};
 use serde::Serialize;
-use tera::{Context as TContext, Tera};
+//use tera::{Context as TContext, Tera};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
@@ -283,11 +283,75 @@ impl<'a> Plan<'a> {
     //        pla_per_beer,
     //        pla_per_style,
     //        pla_per_batch
+    // -> we can do that by adding a parameter wichis is a closure that generates the 'id'
+    pub fn sort_by_batch(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
+        let mut out = HashMap::new();
+        for plan in planning {
+            //_by batch is as fixed id
+            let id = plan.batch.id.to_string();
+            match out.get_mut(&id) {
+                None => {
+                    out.insert(id, vec![plan]);
+                }
+                Some(seq) => {
+                    seq.push(plan);
+                }
+            }
+        }
 
-    pub fn pla_basic(tera: &Tera, planning: &[Plan]) -> String {
-        let mut context = TContext::new();
-        context.insert("planning", planning);
-        tera.render("pla", &context).unwrap()
+        out
+    }
+
+    pub fn pla_basic(
+        //tera: &Tera,
+        planning: &'a [Plan<'a>],
+        ordering: fn(&'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>>,
+    ) -> String {
+        let sorted = (ordering)(planning);
+
+        //let mut context = TContext::new();
+        //context.insert("planning", &sorted);
+        //tera.render("pla", &context).unwrap()
+        let mut blocks = Vec::with_capacity(planning.len());
+        let mut counter = 1;
+        for (id, plans) in sorted.iter() {
+            let first = plans.get(0).unwrap();
+            let name = first.batch.beer.name.clone();
+            let mut block = format!(r#" [{_id}] {_name}\n"#, _id = id, _name = name);
+            let mut prev = None;
+            for plan in plans {
+                for (i, step) in plan.batch.steps().iter().enumerate() {
+                    let (step_group, interval) = step;
+                    let dep = if let Some(p) = prev {
+                        format!("dep {}", p)
+                    } else {
+                        "".to_string()
+                    };
+                    counter = id.parse::<usize>().unwrap() * 10000 + i;
+                    block += &format!(
+                        r#" [{_counter}] {_step_name}
+                            duration {_hours}
+                            {_dep }
+
+                        "#,
+                        _counter = counter,
+                        _step_name = step_group.lookup(),
+                        _hours = interval.range().1.num_hours(),
+                        _dep = dep,
+                    );
+                    prev = Some(counter);
+                }
+            }
+            blocks.push(block);
+        }
+
+        let mut out = format!(
+            r#"
+{_blocks}
+        "#,
+            _blocks = blocks.join("\n"),
+        );
+        out
     }
 }
 

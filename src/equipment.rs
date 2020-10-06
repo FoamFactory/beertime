@@ -74,6 +74,6 @@ mod tests {
     fn test_equimpment_fits() {
         let equipment = mock::equipment();
         assert_eq!(equipment.can_hold(&Volume::GallonUS(12.3)), false);
-        assert_eq!(equipment.can_hold(&Volume::GallonUS(12.2)), true);
+        assert_eq!(equipment.can_hold(&Volume::GallonUS(5.0)), true);
     }
 }
