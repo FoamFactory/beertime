@@ -70,6 +70,7 @@ impl Plan {
                 ========================^==================^========================^=======^========================================
                 Time                    S1A                E1A                      S2A     S1F
                 variable                step_start         step_stop               next_go  resource_available
+                                          machine_step         machine_transfers     machine_clean
                 */
                 for (step_group, interval) in step_iter {
                     let step_start = ast::Int::new_const(
@@ -93,7 +94,7 @@ impl Plan {
 
                     // Constraint: set what resource can be used
                     let equipment_group = step_group.equipment_group();
-                    let step_machine = ast::Dynamic::from_ast(&ast::Int::new_const(
+                    let machine_step = ast::Dynamic::from_ast(&ast::Int::new_const(
                         &ctx,
                         format!(
                             "machine for batch {} {} {:?}",
@@ -107,17 +108,68 @@ impl Plan {
                             batch.system, equipment_group
                         ));
 
-                    solver.assert(&one_of_these.member(&step_machine));
+                    solver.assert(&one_of_these.member(&machine_step));
 
                     // Constraint: the next step may only start after the previous step is done
                     match &prev {
-                        None => prev = Some(step_stop),
-                        Some(p) => {
-                            solver.assert(&step_start.ge(&p));
-                            // @FIXME: should be "end of transfer"instead of previous step;
+                        None => prev = Some((step_stop, machine_step)),
+                        Some((prev_step_stop, prev_machine_step)) => {
+                            solver.assert(&step_start.ge(&prev_step_stop));
+                            // Constraint: both the resources are occupied
                             let transfer_time = step_group.post_process_time(batch.system);
-                            // @FIME: block the resource untill it is ready after cleaning
+                            let next_go = ast::Int::new_const(
+                                &ctx,
+                                format!("Transfered {} {} {:?}", batch.beer.name, i, step_group),
+                            );
+                            solver.assert(&next_go._eq(&ast::Int::add(
+                                &ctx,
+                                &[
+                                    &step_stop,
+                                    &ast::Int::from_i64(&ctx, transfer_time.num_seconds()),
+                                ],
+                            )));
+                            let machine_transfers = ast::Set::new_const(
+                                &ctx,
+                                format!(
+                                    "machines needed during transfer before batch {} {} {:?}",
+                                    batch.beer.name, i, step_group
+                                ),
+                                &Sort::int(&ctx),
+                            );
+                            machine_transfers.add(&machine_step);
+                            machine_transfers.add(&prev_machine_step);
+
+                            // Constraint: clean time occupies resource
                             let clean_time = step_group.post_process_time(batch.system);
+                            let resource_available = ast::Int::new_const(
+                                &ctx,
+                                format!("Transfered {} {} {:?}", batch.beer.name, i, step_group),
+                            );
+                            solver.assert(&resource_available._eq(&ast::Int::add(
+                                &ctx,
+                                &[
+                                    &step_stop,
+                                    &ast::Int::from_i64(
+                                        &ctx,
+                                        transfer_time.num_seconds() + clean_time.num_seconds(),
+                                    ),
+                                ],
+                            )));
+                            let machine_clean = ast::Dynamic::from_ast(&ast::Set::new_const(
+                                &ctx,
+                                format!(
+                                    "machine cleaning after batch {} {} {:?}",
+                                    batch.beer.name, i, step_group
+                                ),
+                                &Sort::int(&ctx),
+                            ));
+                            // Constraint: clean machine is the sames as the machine that made it dirty
+                            solver.assert(&machine_clean._eq(&machine_step));
+
+                            // Constraint: Next step's machine is not this step machine
+                            let prev_match_set = ast::Set::fresh_const(&ctx, &format!("this machine is not the same as prev step for batch {} {} {:?}", batch.beer.name, i, step_group), &Sort::int(&ctx));
+                            prev_match_set.add(&prev_machine_step);
+                            solver.assert(&prev_match_set.member(&machine_step).not());
                         }
                     }
                 }
