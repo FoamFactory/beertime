@@ -7,7 +7,6 @@ use crate::beer::Beer;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::step_group::StepGroup;
-use crate::steps::StepIterator;
 use crate::system::System;
 use crate::volume::Volume;
 
@@ -62,7 +61,7 @@ impl Factory {
                 "Beer {} should have a recipy for system {:?}",
                 batch.beer.name, batch.system
             ));
-            for (step_group, interval) in StepIterator::new(steps) {
+            for (step_group, interval) in steps.iter() {
                 match temp.get_mut(&(batch.system.clone(), step_group.clone())) {
                     None => {
                         temp.insert(

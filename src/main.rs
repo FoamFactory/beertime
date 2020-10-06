@@ -294,6 +294,8 @@ fn main() {
     //todo plan around bottleneck
     let now = chrono::offset::Utc::now(); //DateTime::<Utc>::now();
     let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
+    println!();
+    println!("{:?}", solution);
     // @TODO: Generate plan list
     // @TODO: generate gantt chart
     // @TODO: calculate oee's

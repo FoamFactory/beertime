@@ -43,6 +43,10 @@ impl Steps {
         self.map.get(key)
     }
 
+    pub fn iter(&self) -> StepIterator {
+        StepIterator::new(self)
+    }
+
     pub fn range(&self) -> (Duration, Duration) {
         StepIterator::new(self).fold((Duration::hours(0), Duration::hours(0)), |mut acc, step| {
             let (_group, interval) = step;

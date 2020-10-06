@@ -1,30 +1,28 @@
 use std::collections::HashMap;
 
 use chrono::prelude::*;
-//use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
-use crate::steps::StepIterator;
 
 #[derive(Debug, PartialEq)]
 pub struct Plan<'a> {
-    batch: BatchNeed<'a>,
-    action: Action,
+    batch: &'a BatchNeed<'a>,
+    action: Action<'a>,
     start: DateTime<Utc>,
     end: DateTime<Utc>,
 }
 
 impl<'a> Plan<'a> {
     pub fn new(
-        batch: BatchNeed<'a>,
-        action: Action,
+        batch: &'a BatchNeed<'a>,
+        action: Action<'a>,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Self {
-        // @TODO: the class is probably obsolete, it could be a public function
         Self {
             batch,
             action,
@@ -35,7 +33,7 @@ impl<'a> Plan<'a> {
 
     pub fn plan(
         factory: &'a Factory,
-        batches_needed: &'a [BatchNeed],
+        batches_needed: &'a [BatchNeed<'a>],
         earliest_start: DateTime<Utc>,
     ) -> Vec<Plan<'a>> {
         let mut cfg = Config::new();
@@ -71,25 +69,25 @@ impl<'a> Plan<'a> {
         }
         let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
         let mut counter = 0;
+        /*
+        ===================================================================================================================
+                                +---------------------------------------------------+------------------------------------
+        Equipment 1             | Step 1, Batch A  | Transfer               | Clean | Step 1, Batch C                   >
+                                +------------------+        from resource 1 +-------+------------------------------------
+        Equipment 2                                |          to resource 2 | Step 2, Batch A                        >
+                                                   +-----------------------------------------------------------------
+        Manual labour                               xxxx               xxxx   xxxxx
+        ========================^==================^========================^=======^========================================
+        Time                    S1A                E1A                      S2A     S1F
+        variable                step_start         step_stop               next_go  resource_available
+                                  machine_step         machine_transfers     machine_clean
+        */
+        /*
         for (i, batch) in batches_needed.iter().enumerate() {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
                 let mut prev = None;
-                let step_iter = StepIterator::new(steps);
-                /*
-                ===================================================================================================================
-                                        +---------------------------------------------------+------------------------------------
-                Equipment 1             | Step 1, Batch A  | Transfer               | Clean | Step 1, Batch C                   >
-                                        +------------------+        from resource 1 +-------+------------------------------------
-                Equipment 2                                |          to resource 2 | Step 2, Batch A                        >
-                                                           +-----------------------------------------------------------------
-                Manual labour                               xxxx               xxxx   xxxxx
-                ========================^==================^========================^=======^========================================
-                Time                    S1A                E1A                      S2A     S1F
-                variable                step_start         step_stop               next_go  resource_available
-                                          machine_step         machine_transfers     machine_clean
-                */
-                for (step_group, interval) in step_iter {
+                for (step_group, interval) in steps.iter() {
                     let step_start = ast::Int::new_const(
                         &ctx,
                         format!("start batch {} {} {:?}", batch.beer.name, i, step_group),
@@ -194,20 +192,19 @@ impl<'a> Plan<'a> {
                 counter += 3; // the step, the transfer, the cleaning
             }
         }
-        // avoid duplicate use of machine during operation, transfer or cleaning
-        // set transfer and clean operation only during office hours
-        // set transfer and clean operation nod during holidays
-        //todo bottleneck first
-
-        //todo: solver.optimize(ctx, solver, &self.containers);
+        // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
+        // @TODO: set transfer and clean operation only during office hours
+        // @TODO: set transfer and clean operation nod during holidays
+        // @TODO: Bottleneck first
+        // @TODO: solver.optimize(ctx, solver, &self.containers);
+        */
 
         let solution = match solver.check() {
             SatResult::Sat => {
-                let model = solver.get_model();
+                let _model = solver.get_model();
                 //let used = model.eval(z3var).unwrap().as_bool().unwrap();
-                let mut solution = Vec::with_capacity(counter);
-                println!("{:?}", model);
-
+                //println!("{:?}", model);
+                let solution = Plan::_fake_plan(factory, batches_needed, earliest_start);
                 solution
             }
             SatResult::Unsat => {
@@ -225,6 +222,65 @@ impl<'a> Plan<'a> {
 
         solution
     }
+
+    pub fn _fake_plan(
+        factory: &'a Factory,
+        batches_needed: &'a [BatchNeed<'a>],
+        earliest_start: DateTime<Utc>,
+    ) -> Vec<Plan<'a>> {
+        //fake output
+        let mut solution = Vec::with_capacity(batches_needed.len());
+        let mut start = earliest_start;
+        for batch in batches_needed {
+            if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
+                assert!(batch.volume.ge(max_volume));
+                let mut prev = None;
+                for (step_group, interval) in steps.iter() {
+                    let equipment = factory.equipments.values().nth(0).unwrap(); // this is not correct
+                    let process_start = start;
+                    let (_fastest, longest) = interval.range();
+                    let process_duration = longest;
+                    let process_end = process_start + process_duration;
+                    let process = Plan::new(
+                        batch,
+                        Action::Process(&equipment),
+                        process_start,
+                        process_end,
+                    );
+                    solution.push(process);
+                    let other_equipment = factory.equipments.values().nth(1).unwrap(); // this is not correct
+                    let duration_transfer = step_group.post_process_time(batch.system);
+                    let transfer_end = process_end + duration_transfer;
+                    let transfer = Plan::new(
+                        batch,
+                        Action::Transfer(&equipment, &other_equipment),
+                        process_end,
+                        transfer_end,
+                    );
+                    solution.push(transfer);
+                    let duration_clean = step_group.post_process_time(batch.system);
+                    let clean_end = transfer_end + duration_clean;
+                    let clean =
+                        Plan::new(batch, Action::Clean(&equipment), transfer_end, clean_end);
+                    solution.push(clean);
+                    match prev {
+                        None => prev = Some(1),
+                        Some(_what_is_this_thing) => {}
+                    }
+                    start = transfer_end;
+                }
+            }
+        }
+
+        solution
+    }
+    // @TODO: pla_per_equipment_group
+    //        pla_per_equipment
+    //        pla_per_step_group,
+    //        pla_per_step
+    //        pla_per_beer,
+    //        pla_per_style,
+    //        pla_per_batch
 }
 
 #[cfg(test)]
@@ -232,16 +288,17 @@ pub mod mock {
     use super::*;
     use crate::action;
     use crate::batchneed;
-    use crate::beer;
-    use crate::system;
+    use crate::equipment;
 
-    pub fn plan<'a>(abeer: &'a beer::Beer, system: &'a system::System) -> Plan<'a> {
-        let batchneed = batchneed::mock::batchneed(abeer, system);
-        let action = action::mock::process();
+    pub fn plan<'a>(
+        equipment: &'a equipment::Equipment,
+        batchneed: &'a batchneed::BatchNeed<'a>,
+    ) -> Plan<'a> {
+        let action = action::mock::process(&equipment);
         let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
         let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
 
-        Plan::new(batchneed, action, start, end)
+        Plan::new(&batchneed, action, start, end)
     }
 }
 
@@ -249,18 +306,23 @@ pub mod mock {
 mod tests {
     use super::*;
     use crate::action;
+    use crate::batchneed;
     use crate::beer;
+    use crate::equipment;
     use crate::factory;
     use crate::system;
 
     #[test]
     fn test_plan_new() {
-        let abeer = beer::mock::beer();
+        let beer = beer::mock::beer();
         let system = system::mock::bbl5();
-        let plan = mock::plan(&abeer, &system);
-        assert_eq!(plan.batch.beer, &abeer);
+        let equipment = equipment::mock::equipment();
+        let batchneed = batchneed::mock::batchneed(&beer, &system);
+        let plan = mock::plan(&equipment, &batchneed);
+        let equipment = equipment::mock::equipment();
+        assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.batch.system, &system);
-        assert_eq!(plan.action, action::mock::process());
+        assert_eq!(plan.action, action::mock::process(&equipment));
         assert!(plan.start < plan.end);
     }
 
@@ -271,6 +333,7 @@ mod tests {
         let wishlist = vec![];
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
-        Plan::plan(&factory, batches_needed.as_slice(), now);
+        let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
+        //@TODO: better tests
     }
 }
