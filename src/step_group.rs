@@ -30,7 +30,7 @@ impl StepGroup {
         match self {
             StepGroup::Aging => EquipmentGroup::Keg,
             //StepGroup::Brewing => unimplemented!(), //EquipmentGroup::HotLiquorTank EquipmentGroup::MashTun,
-            StepGroup::Brewing => EquipmentGroup::HotLiquorTank, //EquipmentGroup::MashTun,
+            StepGroup::Brewing => EquipmentGroup::MashTun,
             StepGroup::Carbonation => EquipmentGroup::CO2Tank,
             StepGroup::DiactylRest => EquipmentGroup::Fermentor,
             StepGroup::PrimaryFermentation => EquipmentGroup::Fermentor,
@@ -128,7 +128,7 @@ mod tests {
         assert_eq!(StepGroup::Aging.equipment_group(), EquipmentGroup::Keg);
         assert_eq!(
             StepGroup::Brewing.equipment_group(),
-            EquipmentGroup::HotLiquorTank
+            EquipmentGroup::MashTun
         );
         assert_eq!(
             StepGroup::Carbonation.equipment_group(),
