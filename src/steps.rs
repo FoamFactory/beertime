@@ -10,6 +10,7 @@ use crate::step_group::StepGroup;
 pub struct Steps {
     map: HashMap<StepGroup, Interval>,
 }
+
 macro_rules! step_needed {
     ($map: expr, $var: expr, $key: expr) => {
         if let Some(x) = $var {

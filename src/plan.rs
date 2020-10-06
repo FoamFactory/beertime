@@ -276,19 +276,24 @@ impl<'a> Plan<'a> {
 
         solution
     }
-    // @TODO: pla_per_equipment_group
-    //        pla_per_equipment
-    //        pla_per_step_group,
-    //        pla_per_step
-    //        pla_per_beer,
-    //        pla_per_style,
-    //        pla_per_batch
-    // -> we can do that by adding a parameter wichis is a closure that generates the 'id'
+
+    // @TODO: sort_by_equipment_group
+    //        sort_by_equipment
+    //        sort_by_step_group,
+    //        sort_by_step
+    //        sort_by_beer,
+    //        sort_by_style,
     pub fn sort_by_batch(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
+        Plan::sort_by_xxxx(planning, |plan| plan.batch.id.to_string())
+    }
+
+    pub fn sort_by_xxxx(
+        planning: &'a [Plan<'a>],
+        cl: fn(&'a Plan<'a>) -> String,
+    ) -> HashMap<String, Vec<&'a Plan<'a>>> {
         let mut out = HashMap::new();
         for plan in planning {
-            //_by batch is as fixed id
-            let id = plan.batch.id.to_string();
+            let id = cl(plan);
             match out.get_mut(&id) {
                 None => {
                     out.insert(id, vec![plan]);
