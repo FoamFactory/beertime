@@ -240,27 +240,30 @@ impl<'a> Plan<'a> {
         // @TODO: set transfer and clean operation not during holidays
         // @TODO: Bottleneck first
         // @TODO: solver.optimize(ctx, solver, &self.shortest_longest_duration_of_all_tasks);
+        /*
+            Plan::process_solution(
+                factory,
+                batches_needed,
+                ctx,
+                solver,
+                z3_machines,
+                z3_step_machine,
+                z3_step_times,
+            )
+        }
 
-        Plan::process_solution(
-            factory,
-            batches_needed,
-            solver,
-            z3_machines,
-            z3_step_machine,
-            z3_step_times,
-        )
-    }
-
-    fn process_solution(
-        factory: &'a Factory,
-        batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
-        solver: Solver,
-        z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int, Equipment)>>,
-        z3_step_machine: HashMap<(usize, StepGroup), ast::Int>,
-        z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int>,
-    ) -> Vec<Plan<'a>> {
+        fn process_solution<'ctx>(
+            factory: &'a Factory,
+            batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
+            ctx: Context,
+            solver: Solver<'ctx>,
+            z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
+            z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
+            z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
+        ) -> Vec<Plan<'a>> {
+        */
         let mut machine_lookup = HashMap::with_capacity(factory.equipments.len());
-        for (k, (int, equ)) in z3_machines.values().flatten() {
+        for (k, (_int, equ)) in z3_machines.values().flatten() {
             machine_lookup.insert(*k, equ);
         }
 
@@ -285,30 +288,21 @@ impl<'a> Plan<'a> {
                 let mut temp: HashMap<
                     (usize, StepGroup),
                     (
-                        Option<&Equipment>,
+                        Option<Equipment>,
                         Option<DateTime<Utc>>,
                         Option<DateTime<Utc>>,
                         Option<DateTime<Utc>>,
                         Option<DateTime<Utc>>,
-                        Option<&Equipment>,
+                        Option<Equipment>,
                     ),
                 > = HashMap::with_capacity(batches_needed.len() * 6);
 
                 for ((batch_id, step_group, label), var) in z3_step_times.iter() {
-                    let batch = batches_needed.get(batch_id).unwrap();
                     let machine_step = z3_step_machine
                         .get(&(*batch_id, step_group.clone()))
                         .unwrap();
                     let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
-                    /*
-                    if let Some(suited) =
-                        z3_machines.get(&(step_group.equipment_group(), batch.system.clone()))
-                    {
-                        //
-                    }
-                    */
-                    let equipment_1 = factory.equipments.values().nth(0).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
                     let ts_value = model.eval(var).unwrap().as_i64().unwrap();
                     let ts =
@@ -328,7 +322,14 @@ impl<'a> Plan<'a> {
                             };
                             temp.insert(
                                 (*batch_id, step_group.clone()),
-                                (Some(equipment_1), ts1a, te1a, ts2a, ts1f, None),
+                                (
+                                    Some(equipment.clone().clone().clone()),
+                                    ts1a,
+                                    te1a,
+                                    ts2a,
+                                    ts1f,
+                                    None,
+                                ),
                             );
                         }
                         Some((_equipment, ts1a, te1a, ts2a, ts1f, other_equipment)) => {
@@ -341,7 +342,7 @@ impl<'a> Plan<'a> {
                                 }
                                 S2A => {
                                     *ts2a = Some(ts);
-                                    *other_equipment = Some(equipment_2);
+                                    *other_equipment = Some(equipment_2.clone());
                                 }
                                 S1F => {
                                     *ts1f = Some(ts);
@@ -366,8 +367,8 @@ impl<'a> Plan<'a> {
                     solutions.push(Plan::new(
                         plan_id,
                         batch,
-                        step_group.clone(),
-                        Action::Process(equipment.unwrap()),
+                        step_group.clone().clone(),
+                        Action::Process(&equipment.as_ref().unwrap()),
                         ts1a.unwrap(),
                         te1a.unwrap(),
                     ));
@@ -377,7 +378,10 @@ impl<'a> Plan<'a> {
                             plan_id,
                             batch,
                             step_group.clone(),
-                            Action::Transfer(equipment.unwrap(), other_equipment.unwrap()),
+                            Action::Transfer(
+                                &equipment.as_ref().unwrap(),
+                                &other_equipment.as_ref().unwrap(),
+                            ),
                             te1a.unwrap(),
                             ts2a.unwrap(),
                         ));
@@ -387,7 +391,7 @@ impl<'a> Plan<'a> {
                         plan_id,
                         batch,
                         step_group.clone(),
-                        Action::Clean(equipment.unwrap()),
+                        Action::Clean(equipment.as_ref().unwrap()),
                         ts2a.unwrap(),
                         ts1f.unwrap(),
                     ));
