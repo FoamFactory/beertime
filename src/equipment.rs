@@ -1,10 +1,8 @@
-use serde::Serialize;
-
 use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 use crate::volume::Volume;
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
     pub name: String,
     pub system: System,

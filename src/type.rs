@@ -1,6 +1,4 @@
-use serde::Serialize;
-
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum Type {
     Lager,
     Ale,

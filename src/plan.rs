@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use chrono::prelude::*;
 use chrono::{DateTime, Duration, Utc};
-use serde::Serialize;
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
@@ -10,7 +9,7 @@ use crate::batchneed::BatchNeed;
 use crate::factory::Factory;
 use crate::step_group::StepGroup;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct Plan<'a> {
     id: usize,
     batch: &'a BatchNeed<'a>,

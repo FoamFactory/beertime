@@ -1,12 +1,10 @@
-use serde::Serialize;
-
 use crate::beer::Beer;
 use crate::interval::Interval;
 use crate::step_group::StepGroup;
 use crate::system::System;
 use crate::volume::Volume;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct BatchNeed<'a> {
     pub id: usize,
     pub beer: &'a Beer,

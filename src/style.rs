@@ -1,8 +1,6 @@
-use serde::Serialize;
-
 use crate::r#type::Type;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum Style {
     AmberLager,
     BlondeAle,

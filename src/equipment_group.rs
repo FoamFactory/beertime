@@ -1,6 +1,4 @@
-use serde::Serialize;
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum EquipmentGroup {
     MashTun,
     HotLiquorTank,

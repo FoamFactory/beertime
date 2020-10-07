@@ -1,7 +1,6 @@
 use chrono::Duration;
-use serde::Serialize;
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Interval {
     Hours(u8),
     Days(u8),
