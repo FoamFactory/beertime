@@ -13,6 +13,7 @@ use crate::step_group::StepGroup;
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Plan<'a> {
+    id: usize,
     batch: &'a BatchNeed<'a>,
     step_group: StepGroup,
     action: Action<'a>,
@@ -22,6 +23,7 @@ pub struct Plan<'a> {
 
 impl<'a> Plan<'a> {
     pub fn new(
+        id: usize,
         batch: &'a BatchNeed<'a>,
         step_group: StepGroup,
         action: Action<'a>,
@@ -39,6 +41,7 @@ impl<'a> Plan<'a> {
         }
         */
         Self {
+            id,
             batch,
             step_group,
             action,
@@ -247,6 +250,7 @@ impl<'a> Plan<'a> {
         //fake output
         let mut solution = Vec::with_capacity(batches_needed.len());
         let mut start = earliest_start;
+        let mut plan_id = 1;
         for batch in batches_needed {
             if let Some((max_volume, steps)) = batch.beer.recipy.get(batch.system) {
                 assert!(batch.volume.ge(max_volume));
@@ -258,33 +262,39 @@ impl<'a> Plan<'a> {
                     let process_duration = longest;
                     let process_end = process_start + process_duration;
                     let process = Plan::new(
+                        plan_id,
                         batch,
                         step_group.clone(),
                         Action::Process(&equipment),
                         process_start,
                         process_end,
                     );
+                    plan_id += 1;
                     solution.push(process);
                     let other_equipment = factory.equipments.values().nth(1).unwrap(); // this is not correct
                     let duration_transfer = step_group.post_process_time(batch.system);
                     let transfer_end = process_end + duration_transfer;
                     let transfer = Plan::new(
+                        plan_id,
                         batch,
                         step_group.clone(),
                         Action::Transfer(&equipment, &other_equipment),
                         process_end,
                         transfer_end,
                     );
+                    plan_id += 1;
                     solution.push(transfer);
                     let duration_clean = step_group.post_process_time(batch.system);
                     let clean_end = transfer_end + duration_clean;
                     let clean = Plan::new(
+                        plan_id,
                         batch,
                         step_group,
                         Action::Clean(&equipment),
                         transfer_end,
                         clean_end,
                     );
+                    plan_id += 1;
                     solution.push(clean);
                     match prev {
                         None => prev = Some(1),
@@ -339,8 +349,7 @@ impl<'a> Plan<'a> {
         //context.insert("planning", &sorted);
         //tera.render("pla", &context).unwrap()
         let mut blocks = Vec::with_capacity(planning.len());
-        let mut counter = 1;
-        for (id, plans) in sorted.iter() {
+        for (_ids, plans) in sorted.iter() {
             let first = plans.get(0).unwrap();
             let name = first.batch.beer.name.clone();
             let mut prev = None;
@@ -356,30 +365,30 @@ impl<'a> Plan<'a> {
                 } else {
                     "".to_string()
                 };
-                counter = id.parse::<usize>().unwrap() * 1000000 + i;
-                children.push(format!("\t\t\t\tchild {_counter}", _counter = counter));
+                children.push(format!("\t\t\t\tchild {_plan_id}", _plan_id = plan.id));
                 let block = format!(
-                    r#" [{_counter}] {_step_name}
+                    r#" [{_plan_id}] {_step_name} {_activity}
                             duration {_hours}
                             start {_start}
                             {_dep }
 
                         "#,
-                    _counter = counter,
+                    _plan_id = plan.id,
                     _step_name = step_group.lookup(),
+                    _activity = plan.action.lookup(),
                     _hours = duration.num_hours(),
                     _start = plan.start.format("%Y-%m-%d %H"),
                     _dep = dep,
                 );
-                prev = Some(counter);
+                prev = Some(plan.id);
                 blocks.push(block);
                 //}
             }
-            let mut main_block = format!(
-                r#"[{_id}] {_name}
+            let main_block = format!(
+                r#"[{_batch_id}] {_name} (Batch: {_batch_id})
                 {_childs }
                 "#,
-                _id = id,
+                _batch_id = first.batch.id * 10000,
                 _name = name,
                 _childs = children.join("\n")
             );
@@ -413,7 +422,7 @@ pub mod mock {
         let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
         let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
 
-        Plan::new(&batchneed, step_group, action, start, end)
+        Plan::new(666, &batchneed, step_group, action, start, end)
     }
 }
 
@@ -437,6 +446,7 @@ mod tests {
         let step_group = step_group::mock::brewing();
         let plan = mock::plan(&equipment, step_group.clone(), &batchneed);
         let equipment = equipment::mock::equipment();
+        assert_eq!(plan.id, 666);
         assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.step_group, step_group);
         assert_eq!(plan.batch.system, &system);
