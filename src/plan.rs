@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use chrono::prelude::*;
 use chrono::{DateTime, Duration, Utc};
 use serde::Serialize;
-//use tera::{Context as TContext, Tera};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
@@ -339,21 +338,28 @@ impl<'a> Plan<'a> {
     }
 
     pub fn pla_basic(
-        //tera: &Tera,
         planning: &'a [Plan<'a>],
         ordering: fn(&'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>>,
     ) -> String {
         let sorted = (ordering)(planning);
-
-        //let mut context = TContext::new();
-        //context.insert("planning", &sorted);
-        //tera.render("pla", &context).unwrap()
         let mut blocks = Vec::with_capacity(planning.len());
         for (_ids, plans) in sorted.iter() {
             let first = plans.get(0).unwrap();
             let name = first.batch.beer.name.clone();
             let mut prev = None;
-            let mut children = Vec::with_capacity(plans.len());
+            let children = plans
+                .iter()
+                .map(|plan| format!("\t\t\t\t child {_plan_id}", _plan_id = plan.id))
+                .collect::<Vec<String>>();
+            let main_block = format!(
+                r#"[{_batch_id}] {_name} (Batch: {_batch_id})
+                {_childs }
+                "#,
+                _batch_id = first.batch.id * 10000, //@FIXME: there must be a better way
+                _name = name,
+                _childs = children.join("\n")
+            );
+            blocks.push(main_block);
             for (i, plan) in plans.iter().enumerate() {
                 let step_group = plan.step_group.clone();
                 let duration = plan.end - plan.start;
@@ -362,13 +368,12 @@ impl<'a> Plan<'a> {
                 } else {
                     "".to_string()
                 };
-                let resources = &plan
+                let resources = plan
                     .action
                     .resources()
                     .iter()
                     .map(|x| format!("\t\t\t\tres {_res}", _res = x))
                     .collect::<Vec<String>>();
-                children.push(format!("\t\t\t\tchild {_plan_id}", _plan_id = plan.id));
                 let block = format!(
                     r#" [{_plan_id}] {_step_name} {_activity}
                             duration {_hours}
@@ -388,15 +393,6 @@ impl<'a> Plan<'a> {
                 prev = Some(plan.id);
                 blocks.push(block);
             }
-            let main_block = format!(
-                r#"[{_batch_id}] {_name} (Batch: {_batch_id})
-                {_childs }
-                "#,
-                _batch_id = first.batch.id * 10000,
-                _name = name,
-                _childs = children.join("\n")
-            );
-            blocks.push(main_block);
         }
 
         let out = format!(

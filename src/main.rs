@@ -10,7 +10,6 @@ use beertime::recipy::Recipy;
 use beertime::steps::Steps;
 use beertime::style::Style;
 use beertime::system::System;
-use beertime::templates::load_templates;
 use beertime::volume::Volume;
 
 fn load_equipment(factory: &mut Factory) {
@@ -297,8 +296,7 @@ fn main() {
     let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
     println!();
     println!("{:?}", solution);
-    //let tera = load_templates();
-    let pla = Plan::pla_basic(/*&tera, */ solution.as_slice(), Plan::sort_by_batch);
+    let pla = Plan::pla_basic(solution.as_slice(), Plan::sort_by_batch);
     println!();
     println!("{}", pla);
     // @TODO: Generate plan list
