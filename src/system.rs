@@ -32,6 +32,17 @@ impl System {
             System::BBL15 => Volume::GallonUS(630.0),
         }
     }
+
+    pub fn all() -> Vec<System> {
+        vec![
+            System::G5,
+            System::G10,
+            System::BBL5,
+            System::BBL7,
+            System::BBL10,
+            System::BBL15,
+        ]
+    }
 }
 
 impl std::str::FromStr for System {
@@ -105,5 +116,9 @@ mod tests {
         assert_eq!(System::BBL7.volume(), Volume::GallonUS(294.0));
         assert_eq!(System::BBL10.volume(), Volume::GallonUS(420.0));
         assert_eq!(System::BBL15.volume(), Volume::GallonUS(630.0));
+    }
+    #[test]
+    fn test_system_all() {
+        assert_eq!(System::all().len(), 6);
     }
 }

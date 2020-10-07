@@ -24,6 +24,16 @@ impl StepGroup {
             StepGroup::SecondaryFermentation => "Secondary Fermentation",
         }
     }
+    pub fn all() -> Vec<StepGroup> {
+        vec![
+            StepGroup::Brewing,
+            StepGroup::PrimaryFermentation,
+            StepGroup::DiactylRest,
+            StepGroup::SecondaryFermentation,
+            StepGroup::Aging,
+            StepGroup::Carbonation,
+        ]
+    }
 
     pub fn equipment_group(&self) -> EquipmentGroup {
         match self {
@@ -107,7 +117,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_group_lookup() {
+    fn test_stepgroup_lookup() {
         assert_eq!(StepGroup::Aging.lookup(), "Aging");
         assert_eq!(StepGroup::Brewing.lookup(), "Brewing");
         assert_eq!(StepGroup::Carbonation.lookup(), "Carbonation");
@@ -123,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn test_group_equipment_group() {
+    fn test_stepgroup_equipment_group() {
         assert_eq!(StepGroup::Aging.equipment_group(), EquipmentGroup::Keg);
         assert_eq!(
             StepGroup::Brewing.equipment_group(),
@@ -148,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn test_group_parse() {
+    fn test_stepgroup_parse() {
         assert_eq!("Aging".parse(), Ok(StepGroup::Aging));
         assert_eq!("Brewing".parse(), Ok(StepGroup::Brewing));
         assert_eq!("Carbonation".parse(), Ok(StepGroup::Carbonation));
@@ -164,7 +174,12 @@ mod tests {
     }
 
     #[test]
-    fn test_group_post_process_time() {
+    fn test_stepgroup_all() {
+        assert_eq!(StepGroup::all().len(), 6);
+    }
+
+    #[test]
+    fn test_stepgroup_post_process_time() {
         assert_eq!(
             StepGroup::Aging.post_process_time(&System::G5),
             Duration::minutes(2)

@@ -6,8 +6,10 @@ use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
 use crate::equipment::Equipment;
+use crate::equipment_group::EquipmentGroup;
 use crate::factory::Factory;
 use crate::step_group::StepGroup;
+use crate::system::System;
 
 #[derive(Debug, PartialEq)]
 pub struct Plan<'a> {
@@ -25,12 +27,12 @@ const S2A: &'static str = "TRANSFERED";
 const S1F: &'static str = "CLEANED";
 
 macro_rules! gen_z3_var {
-    ($z3_vars: expr, $var_name: ident, $format: expr, $ctx: expr, $batch:expr, $step_group: expr, $label: expr) => {
+    ($z3_step_times: expr, $var_name: ident, $format: expr, $ctx: expr, $batch:expr, $step_group: expr, $label: expr) => {
         let $var_name = ast::Int::new_const(
             &$ctx,
             format!($format, $batch.beer.name, $batch.id, $step_group.clone()),
         );
-        $z3_vars.insert(($batch.id, $step_group.clone(), $label), $var_name.clone());
+        $z3_step_times.insert(($batch.id, $step_group.clone(), $label), $var_name.clone());
     };
 }
 
@@ -90,16 +92,64 @@ impl<'a> Plan<'a> {
                                  machine_step         machine_transfers     machine_clean
         */
 
-        let mut z3_vars = HashMap::with_capacity(batches_needed.len() * 6 * 4);
+        let mut z3_step_times = HashMap::with_capacity(batches_needed.len() * 6 * 4);
+        let mut z3_step_machine = HashMap::with_capacity(batches_needed.len() * 6);
+        let step_groups = StepGroup::all();
+        let systems = System::all();
+
+        let mut z3_machines = HashMap::with_capacity(step_groups.len());
+        for step_group in step_groups {
+            for system in &systems {
+                let equipment_group = step_group.equipment_group();
+                z3_machines.insert((equipment_group, system.clone()), HashMap::new());
+            }
+        }
+        let mut machine_id = 1;
+        for equipment in factory.equipments.values() {
+            if let Some(map) =
+                z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.system.clone()))
+            {
+                let machine = ast::Int::new_const(&ctx, format!("Equipment {}", equipment.name));
+                map.insert(machine_id, (machine, equipment.clone()));
+                machine_id += 1;
+            }
+        }
+
         for batch in batches_needed.values() {
             //println!("batch {} beer {}", batch.id, batch.beer.name);
-            //let mut prev = None;
+            let mut prev = None;
             let mut start = start_horizon.clone();
             for (step_group, interval) in batch.steps() {
                 let (_earliest, longest) = interval.range();
                 //println!("\t step {:?} {:?}", step_group, longest.num_hours());
+                let machine_step = ast::Int::new_const(
+                    &ctx,
+                    format!(
+                        "started batch: {}, beer: {} step: {:?}",
+                        batch.beer.name,
+                        batch.id,
+                        step_group.clone()
+                    ),
+                );
+                z3_step_machine.insert((batch.id, step_group.clone()), machine_step.clone());
+                let equipment_group = step_group.equipment_group();
+                if let Some(suited) = z3_machines.get(&(equipment_group, batch.system.clone())) {
+                    let suited_machines = suited
+                        .values()
+                        .map(|(int, _equ)| int)
+                        .collect::<Vec<&ast::Int>>();
+                    let mut ors = Vec::with_capacity(suited_machines.len());
+                    for machine in suited_machines {
+                        let allowed = machine_step._eq(&machine);
+                        ors.push(allowed);
+                    }
+                    let bors = ors.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
+                    // Constraint: only one of these machines can be used for this step
+                    solver.assert(&ast::Bool::or(&ctx, bors.as_slice()));
+                }
+
                 gen_z3_var!(
-                    z3_vars,
+                    z3_step_times,
                     step_start,
                     "started batch: {}, beer: {} step: {:?}",
                     ctx,
@@ -108,7 +158,7 @@ impl<'a> Plan<'a> {
                     S1A
                 );
                 gen_z3_var!(
-                    z3_vars,
+                    z3_step_times,
                     step_stop,
                     "stopped batch: {}, beer: {} step: {:?}",
                     ctx,
@@ -117,7 +167,7 @@ impl<'a> Plan<'a> {
                     E1A
                 );
                 gen_z3_var!(
-                    z3_vars,
+                    z3_step_times,
                     next_go,
                     "transfered batch: {}, beer: {} step: {:?}",
                     ctx,
@@ -126,7 +176,7 @@ impl<'a> Plan<'a> {
                     S2A
                 );
                 gen_z3_var!(
-                    z3_vars,
+                    z3_step_times,
                     resource_available,
                     "cleaned batch: {}, beer: {} step: {:?}",
                     ctx,
@@ -169,22 +219,21 @@ impl<'a> Plan<'a> {
                         &ast::Int::from_i64(&ctx, clean_time.num_seconds()),
                     ],
                 )));
-
-                /*
                 match prev {
-                    None => prev = Some((next_gostep_stop,)),
-                    Some((ref _step_stop,)) => {
-                        // Constraint: the next step may only start after the previous step is done
+                    None => prev = Some((step_group, machine_step)),
+                    Some((ref prev_step_group, ref prev_machine_step)) => {
+                        if &step_group == prev_step_group {
+                            let same = machine_step._eq(prev_machine_step);
+                            // Constraint: Previous step's machine is not this step's machine
+                            solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
+                        }
                     }
                 }
-                */
             }
         }
 
-        // Constraint: set what resource can be used
         // Constraint: both the resources are occupied during transfer
         // Constraint: clean machine is the same as the machine that made it dirty
-        // Constraint: Next step's machine is not this step machine
 
         // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
         // @TODO: set transfer and clean operation only during office hours
@@ -192,7 +241,41 @@ impl<'a> Plan<'a> {
         // @TODO: Bottleneck first
         // @TODO: solver.optimize(ctx, solver, &self.shortest_longest_duration_of_all_tasks);
 
+        Plan::process_solution(
+            factory,
+            batches_needed,
+            solver,
+            z3_machines,
+            z3_step_machine,
+            z3_step_times,
+        )
+    }
+
+    fn process_solution(
+        factory: &'a Factory,
+        batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
+        solver: Solver,
+        z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int, Equipment)>>,
+        z3_step_machine: HashMap<(usize, StepGroup), ast::Int>,
+        z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int>,
+    ) -> Vec<Plan<'a>> {
+        let mut machine_lookup = HashMap::with_capacity(factory.equipments.len());
+        for (k, (int, equ)) in z3_machines.values().flatten() {
+            machine_lookup.insert(*k, equ);
+        }
+
         match solver.check() {
+            SatResult::Unsat => {
+                println!("No solution found!");
+                panic!("TODO: better error handling");
+            }
+            SatResult::Unknown => {
+                print!(
+                    "No solution found: {}",
+                    solver.get_reason_unknown().unwrap()
+                );
+                panic!("TODO: better error handling");
+            }
             SatResult::Sat => {
                 let model = solver.get_model();
                 // println!("{:?}", model);
@@ -210,12 +293,26 @@ impl<'a> Plan<'a> {
                         Option<&Equipment>,
                     ),
                 > = HashMap::with_capacity(batches_needed.len() * 6);
-                let equipment_1 = factory.equipments.values().nth(0).unwrap();
-                let equipment_2 = factory.equipments.values().nth(1).unwrap();
-                for ((batch_id, step_group, label), var) in z3_vars.iter() {
-                    let value = model.eval(var).unwrap().as_i64().unwrap();
+
+                for ((batch_id, step_group, label), var) in z3_step_times.iter() {
+                    let batch = batches_needed.get(batch_id).unwrap();
+                    let machine_step = z3_step_machine
+                        .get(&(*batch_id, step_group.clone()))
+                        .unwrap();
+                    let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
+                    let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
+                    /*
+                    if let Some(suited) =
+                        z3_machines.get(&(step_group.equipment_group(), batch.system.clone()))
+                    {
+                        //
+                    }
+                    */
+                    let equipment_1 = factory.equipments.values().nth(0).unwrap();
+                    let equipment_2 = factory.equipments.values().nth(1).unwrap();
+                    let ts_value = model.eval(var).unwrap().as_i64().unwrap();
                     let ts =
-                        DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(value, 0), Utc);
+                        DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_value, 0), Utc);
                     match temp.get_mut(&(*batch_id, step_group.clone())) {
                         None => {
                             let mut ts1a = None;
@@ -300,17 +397,6 @@ impl<'a> Plan<'a> {
                 //println!(">{:?}", solutions);
 
                 return solutions;
-            }
-            SatResult::Unsat => {
-                println!("No solution found!");
-                panic!("TODO: better error handling");
-            }
-            SatResult::Unknown => {
-                print!(
-                    "No solution found: {}",
-                    solver.get_reason_unknown().unwrap()
-                );
-                panic!("TODO: better error handling");
             }
         };
     }
