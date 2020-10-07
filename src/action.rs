@@ -1,13 +1,13 @@
 use crate::equipment::Equipment;
 
 #[derive(Debug, PartialEq)]
-pub enum Action<'a> {
-    Process(&'a Equipment),
-    Clean(&'a Equipment),
-    Transfer(&'a Equipment, &'a Equipment),
+pub enum Action {
+    Process(Equipment),
+    Clean(Equipment),
+    Transfer(Equipment, Equipment),
 }
 
-impl<'a> Action<'a> {
+impl Action {
     pub fn lookup(&self) -> String {
         match self {
             Action::Process(equipment) => format!("Process ({})", equipment.name),
@@ -31,15 +31,15 @@ pub mod mock {
     use super::*;
     use crate::equipment::Equipment;
 
-    pub fn process<'a>(equipment: &'a Equipment) -> Action<'a> {
+    pub fn process(equipment: Equipment) -> Action {
         Action::Process(equipment)
     }
 
-    pub fn clean<'a>(equipment: &'a Equipment) -> Action<'a> {
+    pub fn clean(equipment: Equipment) -> Action {
         Action::Clean(equipment)
     }
 
-    pub fn transfer<'a>(equipment: &'a Equipment, other: &'a Equipment) -> Action<'a> {
+    pub fn transfer(equipment: Equipment, other: Equipment) -> Action {
         Action::Transfer(equipment, other)
     }
 }
@@ -55,17 +55,17 @@ mod tests {
     #[test]
     fn test_action_new() {
         let equipment = equipment::mock::equipment();
-        let action = mock::clean(&equipment);
-        assert_eq!(action, Action::Clean(&equipment));
+        let action = mock::clean(equipment.clone());
+        assert_eq!(action, Action::Clean(equipment));
     }
 
     #[test]
     fn test_action_lookup() {
         let equipment_1 = equipment::mock::equipment();
-        let action_1 = mock::clean(&equipment_1);
+        let action_1 = mock::clean(equipment_1.clone());
         assert_eq!(&action_1.lookup(), "Clean (Foobar 2000)");
 
-        let action_2 = mock::process(&equipment_1);
+        let action_2 = mock::process(equipment_1.clone());
         assert_eq!(&action_2.lookup(), "Process (Foobar 2000)");
 
         let equipment_2 = Equipment::new(
@@ -74,7 +74,7 @@ mod tests {
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         );
-        let action_3 = mock::transfer(&equipment_1, &equipment_2);
+        let action_3 = mock::transfer(equipment_1.clone(), equipment_2);
         assert_eq!(
             &action_3.lookup(),
             "Transfer (from Foobar 2000 to Foobar 2001)"
@@ -84,13 +84,13 @@ mod tests {
     #[test]
     fn test_action_resources() {
         let equipment_1 = equipment::mock::equipment();
-        let action_1 = mock::clean(&equipment_1);
+        let action_1 = mock::clean(equipment_1.clone());
         assert_eq!(
             action_1.resources(),
             vec!["Cleaner".to_string(), "Foobar 2000".to_string()]
         );
 
-        let action_2 = mock::process(&equipment_1);
+        let action_2 = mock::process(equipment_1.clone());
         assert_eq!(action_2.resources(), vec!["Foobar 2000".to_string()]);
 
         let equipment_2 = Equipment::new(
@@ -99,7 +99,7 @@ mod tests {
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         );
-        let action_3 = mock::transfer(&equipment_1, &equipment_2);
+        let action_3 = mock::transfer(equipment_1.clone(), equipment_2);
         assert_eq!(
             action_3.resources(),
             vec![

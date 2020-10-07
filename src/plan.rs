@@ -16,7 +16,7 @@ pub struct Plan<'a> {
     id: usize,
     batch: &'a BatchNeed<'a>,
     step_group: StepGroup,
-    action: Action<'a>,
+    action: Action,
     start: DateTime<Utc>,
     end: DateTime<Utc>,
 }
@@ -41,7 +41,7 @@ impl<'a> Plan<'a> {
         id: usize,
         batch: &'a BatchNeed<'a>,
         step_group: StepGroup,
-        action: Action<'a>,
+        action: Action,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Self {
@@ -240,28 +240,24 @@ impl<'a> Plan<'a> {
         // @TODO: set transfer and clean operation not during holidays
         // @TODO: Bottleneck first
         // @TODO: solver.optimize(ctx, solver, &self.shortest_longest_duration_of_all_tasks);
-        /*
-            Plan::process_solution(
-                factory,
-                batches_needed,
-                ctx,
-                solver,
-                z3_machines,
-                z3_step_machine,
-                z3_step_times,
-            )
-        }
+        Plan::process_solution(
+            factory,
+            batches_needed,
+            solver,
+            z3_machines,
+            z3_step_machine,
+            z3_step_times,
+        )
+    }
 
-        fn process_solution<'ctx>(
-            factory: &'a Factory,
-            batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
-            ctx: Context,
-            solver: Solver<'ctx>,
-            z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
-            z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
-            z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
-        ) -> Vec<Plan<'a>> {
-        */
+    fn process_solution<'ctx>(
+        factory: &'a Factory,
+        batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
+        solver: Solver<'ctx>,
+        z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
+        z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
+        z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
+    ) -> Vec<Plan<'a>> {
         let mut machine_lookup = HashMap::with_capacity(factory.equipments.len());
         for (k, (_int, equ)) in z3_machines.values().flatten() {
             machine_lookup.insert(*k, equ);
@@ -302,6 +298,9 @@ impl<'a> Plan<'a> {
                         .get(&(*batch_id, step_group.clone()))
                         .unwrap();
                     let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
+                    println!("----");
+                    println!("{:?}", machine_lookup);
+                    println!("{:?}", machine_value);
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
                     let ts_value = model.eval(var).unwrap().as_i64().unwrap();
@@ -368,7 +367,7 @@ impl<'a> Plan<'a> {
                         plan_id,
                         batch,
                         step_group.clone().clone(),
-                        Action::Process(&equipment.as_ref().unwrap()),
+                        Action::Process(equipment.as_ref().unwrap().clone()),
                         ts1a.unwrap(),
                         te1a.unwrap(),
                     ));
@@ -379,8 +378,8 @@ impl<'a> Plan<'a> {
                             batch,
                             step_group.clone(),
                             Action::Transfer(
-                                &equipment.as_ref().unwrap(),
-                                &other_equipment.as_ref().unwrap(),
+                                equipment.as_ref().unwrap().clone(),
+                                other_equipment.as_ref().unwrap().clone(),
                             ),
                             te1a.unwrap(),
                             ts2a.unwrap(),
@@ -391,7 +390,7 @@ impl<'a> Plan<'a> {
                         plan_id,
                         batch,
                         step_group.clone(),
-                        Action::Clean(equipment.as_ref().unwrap()),
+                        Action::Clean(equipment.as_ref().unwrap().clone()),
                         ts2a.unwrap(),
                         ts1f.unwrap(),
                     ));
@@ -513,11 +512,11 @@ pub mod mock {
     use crate::step_group;
 
     pub fn plan<'a>(
-        equipment: &'a equipment::Equipment,
+        equipment: equipment::Equipment,
         step_group: step_group::StepGroup,
         batchneed: &'a batchneed::BatchNeed<'a>,
     ) -> Plan<'a> {
-        let action = action::mock::process(&equipment);
+        let action = action::mock::process(equipment);
         let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
         let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
 
@@ -543,13 +542,13 @@ mod tests {
         let equipment = equipment::mock::equipment();
         let batchneed = batchneed::mock::batchneed(&beer, &system);
         let step_group = step_group::mock::brewing();
-        let plan = mock::plan(&equipment, step_group.clone(), &batchneed);
+        let plan = mock::plan(equipment.clone(), step_group.clone(), &batchneed);
         let equipment = equipment::mock::equipment();
         assert_eq!(plan.id, 666);
         assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.step_group, step_group);
         assert_eq!(plan.batch.system, &system);
-        assert_eq!(plan.action, action::mock::process(&equipment));
+        assert_eq!(plan.action, action::mock::process(equipment));
         assert!(plan.start < plan.end);
     }
 
