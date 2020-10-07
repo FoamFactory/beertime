@@ -355,9 +355,6 @@ impl<'a> Plan<'a> {
             let mut prev = None;
             let mut children = Vec::with_capacity(plans.len());
             for (i, plan) in plans.iter().enumerate() {
-                //for (i, step) in plan.batch.steps().iter().enumerate() {
-                //let (step_group, interval) = step;
-                //let duration = interval.range().1;
                 let step_group = plan.step_group.clone();
                 let duration = plan.end - plan.start;
                 let dep = if let Some(p) = prev {
@@ -365,11 +362,18 @@ impl<'a> Plan<'a> {
                 } else {
                     "".to_string()
                 };
+                let resources = &plan
+                    .action
+                    .resources()
+                    .iter()
+                    .map(|x| format!("\t\t\t\tres {_res}", _res = x))
+                    .collect::<Vec<String>>();
                 children.push(format!("\t\t\t\tchild {_plan_id}", _plan_id = plan.id));
                 let block = format!(
                     r#" [{_plan_id}] {_step_name} {_activity}
                             duration {_hours}
                             start {_start}
+                            {_res}
                             {_dep }
 
                         "#,
@@ -377,12 +381,12 @@ impl<'a> Plan<'a> {
                     _step_name = step_group.lookup(),
                     _activity = plan.action.lookup(),
                     _hours = duration.num_hours(),
+                    _res = resources.join("\n"),
                     _start = plan.start.format("%Y-%m-%d %H"),
                     _dep = dep,
                 );
                 prev = Some(plan.id);
                 blocks.push(block);
-                //}
             }
             let main_block = format!(
                 r#"[{_batch_id}] {_name} (Batch: {_batch_id})
