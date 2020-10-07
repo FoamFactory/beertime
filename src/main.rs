@@ -281,7 +281,7 @@ fn main() {
     assert_eq!(batches_needed.len(), 19);
     //FIXME: group theses steps together; there is too much hash/vector building and sorting going on
     println!("\nbatches needed: {:?}", batches_needed);
-    let most_needed_steps = factory.calculate_bottleneck_step(batches_needed.as_slice());
+    let most_needed_steps = factory.calculate_bottleneck_step(&batches_needed);
     println!("\nbottleneck step: {:?}", most_needed_steps);
     let most_needed_equipment =
         factory.calculate_bottleneck_equipment(most_needed_steps.as_slice());
@@ -291,7 +291,7 @@ fn main() {
     println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
     //todo plan around bottleneck
     let now = chrono::offset::Utc::now(); //DateTime::<Utc>::now();
-    let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
+    let solution = Plan::plan(&factory, &batches_needed, now);
     println!();
     println!("{:?}", solution);
     let pla = Plan::pla_basic(solution.as_slice(), Plan::sort_by_batch);

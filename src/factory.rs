@@ -26,8 +26,11 @@ impl Factory {
         }
     }
 
-    pub fn calculate_batches(&self, wishlist: Vec<(&'static str, Volume)>) -> Vec<BatchNeed> {
-        let mut batches_needed = Vec::with_capacity(wishlist.len());
+    pub fn calculate_batches(
+        &self,
+        wishlist: Vec<(&'static str, Volume)>,
+    ) -> HashMap<usize, BatchNeed> {
+        let mut batches_needed = HashMap::with_capacity(wishlist.len());
         let mut id = 1;
         for (beer_name, quantity) in wishlist {
             let beer = self
@@ -45,7 +48,7 @@ impl Factory {
             let counts = quantity.full_batches(r#yield);
             for _i in 0..counts {
                 let batch = BatchNeed::new(id, beer, system, r#yield.clone());
-                batches_needed.push(batch);
+                batches_needed.insert(batch.id, batch);
                 id += 1;
             }
         }
@@ -55,10 +58,10 @@ impl Factory {
 
     pub fn calculate_bottleneck_step(
         &self,
-        batches: &[BatchNeed],
+        batches_needed: &HashMap<usize, BatchNeed>,
     ) -> Vec<(System, StepGroup, Duration)> {
         let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
-        for batch in batches {
+        for batch in batches_needed.values() {
             let (_volume, steps) = batch.beer.recipy.get(batch.system).expect(&format!(
                 "Beer {} should have a recipy for system {:?}",
                 batch.beer.name, batch.system
