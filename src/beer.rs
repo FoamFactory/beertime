@@ -1,4 +1,3 @@
-use crate::r#type::Type;
 use crate::recipy::Recipy;
 use crate::style::Style;
 

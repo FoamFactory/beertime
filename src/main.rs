@@ -1,5 +1,3 @@
-use chrono::{DateTime, Utc};
-
 use beertime::beer::Beer;
 use beertime::equipment::Equipment;
 use beertime::equipment_group::EquipmentGroup;

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use chrono::prelude::*;
-use chrono::{DateTime, Duration, Utc};
 use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
 
 use crate::action::Action;
@@ -84,9 +83,8 @@ impl<'a> Plan<'a> {
                 one_of_these,
             );
         }
-        let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
-        let mut counter = 0;
         /*
+        let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
         ===================================================================================================================
                                 +---------------------------------------------------+------------------------------------
         Equipment 1             | Step 1, Batch A  | Transfer               | Clean | Step 1, Batch C                   >
@@ -359,7 +357,7 @@ impl<'a> Plan<'a> {
                 _childs = children.join("\n")
             );
             blocks.push(main_block);
-            for (i, plan) in plans.iter().enumerate() {
+            for plan in plans.iter() {
                 let step_group = plan.step_group.clone();
                 let duration = plan.end - plan.start;
                 let dep = if let Some(p) = prev {
@@ -460,7 +458,7 @@ mod tests {
         let wishlist = vec![];
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
-        let solution = Plan::plan(&factory, batches_needed.as_slice(), now);
+        let _solution = Plan::plan(&factory, batches_needed.as_slice(), now);
         //@TODO: better tests
     }
 }
