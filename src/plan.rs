@@ -45,8 +45,7 @@ impl<'a> Plan<'a> {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Self {
-        /* @FIXME: activate this check, it panics now because the fake_plan is build with stupid equipments.
-        match action {
+        match &action {
             Action::Process(equipment) | Action::Clean(equipment) => {
                 assert_eq!(step_group.equipment_group(), equipment.equipment_group);
             }
@@ -54,7 +53,7 @@ impl<'a> Plan<'a> {
                 assert_eq!(step_group.equipment_group(), equipment.equipment_group);
             }
         }
-        */
+
         Self {
             id,
             batch,
@@ -293,6 +292,7 @@ impl<'a> Plan<'a> {
         // @TODO: set transfer and clean operation not during holidays
         // @TODO: Bottleneck first
         // @TODO: Buffer before bottleneck
+        /*
         let mut all_endings = Vec::new();
         let mut machine_totals = HashMap::with_capacity(factory.equipments.len());
         let mut beers_totals = HashMap::with_capacity(factory.beers.len());
@@ -305,6 +305,7 @@ impl<'a> Plan<'a> {
             machine_totals,
             beers_totals,
         );
+        */
         Plan::process_solution(
             factory,
             batches_needed,
