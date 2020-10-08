@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::prelude::*;
-use z3::{ast, ast::Ast, Config, Context, SatResult, Solver};
+use z3::{ast, ast::Ast, Config, Context, FuncDecl, Optimize, SatResult, Sort};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
@@ -77,7 +77,7 @@ impl<'a> Plan<'a> {
         cfg.set_debug_ref_count(false);
         //cfg.set_timeout_msec(5_000);
         let ctx = Context::new(&cfg);
-        let solver = Solver::new(&ctx);
+        let solver = Optimize::new(&ctx);
 
         /*
         ===================================================================================================================
@@ -283,7 +283,7 @@ impl<'a> Plan<'a> {
                     // todo....The other machine is also occupied from step_stop till next_go
                 }
             }
-            let ooverlaps = &overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
+            let ooverlaps = overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
             solver.assert(&ast::Bool::or(&ctx, ooverlaps.as_slice()));
         }
 
@@ -292,7 +292,19 @@ impl<'a> Plan<'a> {
         // @TODO: set transfer and clean operation only during office hours
         // @TODO: set transfer and clean operation not during holidays
         // @TODO: Bottleneck first
-        // @TODO: solver.optimize(ctx, solver, &self.shortest_longest_duration_of_all_tasks);
+        // @TODO: Buffer before bottleneck
+        let mut all_endings = Vec::new();
+        let mut machine_totals = HashMap::with_capacity(factory.equipments.len());
+        let mut beers_totals = HashMap::with_capacity(factory.beers.len());
+
+        Plan::optimize(
+            &solver,
+            &ctx,
+            earliest_start,
+            all_endings,
+            machine_totals,
+            beers_totals,
+        );
         Plan::process_solution(
             factory,
             batches_needed,
@@ -303,10 +315,53 @@ impl<'a> Plan<'a> {
         )
     }
 
+    fn optimize<'ctx>(
+        solver: &'ctx Optimize,
+        ctx: &'ctx Context,
+        earliest_start: DateTime<Utc>,
+        all_endings: Vec<&ast::Dynamic>,
+        machine_totals: HashMap<Equipment, i64>,
+        beers_totals: HashMap<Equipment, i64>,
+    ) {
+        // 4) We optimize for the shortest time that all machines are in the resource_available state
+        //    The variables all_endings, machine_totals and beers_totals help are the indicators.
+        let longest = vec![
+            machine_totals.values().max().unwrap(),
+            beers_totals.values().max().unwrap(),
+        ]
+        .iter()
+        .map(|x| *x)
+        .max()
+        .unwrap();
+        let longest_start = earliest_start.timestamp() as i64 + *longest;
+        let shortest_longest_duration_of_all_tasks = ast::Int::new_const(ctx, "Max time");
+        let parameter_sorts = all_endings
+            .iter()
+            .map(|_x| Sort::int(ctx))
+            .collect::<Vec<Sort>>();
+        let oparameter_sorts = parameter_sorts.iter().map(|x| x).collect::<Vec<&Sort>>();
+        let fmax = FuncDecl::new(
+            ctx,
+            "MaximizeFunction",
+            oparameter_sorts.as_slice(),
+            &Sort::int(ctx),
+        );
+        //     Constraint-hint: We can limit the search field, so that the optimize has less work.
+        solver.assert(
+            &shortest_longest_duration_of_all_tasks.ge(&ast::Int::from_i64(ctx, longest_start)),
+        );
+        //     Constraint-optimizer
+        solver.assert(
+            &shortest_longest_duration_of_all_tasks
+                ._eq(&fmax.apply(all_endings.as_slice()).as_int().unwrap()),
+        );
+        solver.minimize(&shortest_longest_duration_of_all_tasks);
+    }
+
     fn process_solution<'ctx>(
         factory: &'a Factory,
         batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
-        solver: Solver<'ctx>,
+        solver: Optimize<'ctx>,
         z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
         z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
         z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
@@ -316,7 +371,7 @@ impl<'a> Plan<'a> {
             machine_lookup.insert(*k, equ);
         }
 
-        match solver.check() {
+        match solver.check(&[]) {
             SatResult::Unsat => {
                 println!("No solution found!");
                 panic!("TODO: better error handling");
