@@ -230,11 +230,10 @@ impl<'a> Plan<'a> {
                 match prev {
                     None => prev = Some((step_group, machine_step, machine_counts)),
                     Some((ref prev_step_group, ref prev_machine_step, prev_machine_counts)) => {
-                        if &step_group == prev_step_group && prev_machine_counts > 1 {
-                            let same = machine_step._eq(prev_machine_step);
-                            //     Constraint: Previous step's machine is not this step's machine
-                            solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
-                        }
+                        // TODO: find out why "if &step_group == prev_step_group && prev_machine_counts > 1 " fails
+                        let same = machine_step._eq(prev_machine_step);
+                        //     Constraint: Previous step's machine is not this step's machine
+                        solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
                     }
                 }
             }
@@ -285,10 +284,7 @@ impl<'a> Plan<'a> {
                 }
             }
             let ooverlaps = &overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
-            solver.assert(&ast::Bool::or(
-                &ctx,
-                &[&ast::Bool::and(&ctx, ooverlaps.as_slice())],
-            ));
+            solver.assert(&ast::Bool::or(&ctx, ooverlaps.as_slice()));
         }
 
         //     Constraint: both the resources are occupied during transfer
