@@ -242,6 +242,7 @@ impl<'a> Plan<'a> {
         // 3b) Now that we have variables for the start/stop-times and the machines,
         //     we can set up that one machine can only do 1 task at the same time.
         for ((this_batch_id, this_step_group), this_step_machine) in z3_step_machine.iter() {
+            // we unwrap here 4 * 2 times, but a pyramid of 'if let Some()' could also work
             let this_step_start = z3_step_times
                 .get(&(*this_batch_id, this_step_group.clone(), S1A))
                 .unwrap();
@@ -270,14 +271,16 @@ impl<'a> Plan<'a> {
                         .get(&(*other_batch_id, other_step_group.clone(), S1F))
                         .unwrap();
                     //     Constraint: This machine in occupied from step_start till resource_available
-                    overlaps.push(ast::Bool::and(
-                        &ctx,
-                        &[&this_resource_available.le(&other_step_start)],
-                    ));
-                    overlaps.push(ast::Bool::and(
-                        &ctx,
-                        &[&other_resource_available.le(&this_step_start)],
-                    ));
+                    overlaps.push(
+                        ast::Bool::and(
+                            &ctx,
+                            &[
+                                &this_resource_available.ge(&other_step_start),
+                                &other_resource_available.ge(&this_step_start),
+                            ],
+                        )
+                        .not(),
+                    );
                     // todo....The other machine is also occupied from step_stop till next_go
                 }
             }
