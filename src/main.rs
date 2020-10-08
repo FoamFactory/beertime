@@ -280,20 +280,19 @@ fn main() {
     let batches_needed = factory.calculate_batches(wishlist);
     assert_eq!(batches_needed.len(), 19);
     //FIXME: group theses steps together; there is too much hash/vector building and sorting going on
-    println!("\nbatches needed: {:?}", batches_needed);
+    //println!("\nbatches needed: {:?}", batches_needed);
     let most_needed_steps = factory.calculate_bottleneck_step(&batches_needed);
-    println!("\nbottleneck step: {:?}", most_needed_steps);
+    //println!("\nbottleneck step: {:?}", most_needed_steps);
     let most_needed_equipment =
         factory.calculate_bottleneck_equipment(most_needed_steps.as_slice());
-    println!("\nbottleneck equipment: {:?}", most_needed_equipment);
-    let most_bottlenecked_equipment =
+    //println!("\nbottleneck equipment: {:?}", most_needed_equipment);
+    let _most_bottlenecked_equipment =
         factory.calculate_bottleneck(most_needed_equipment.as_slice());
-    println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
+    //println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
     //todo plan around bottleneck
     let now = chrono::offset::Utc::now(); //DateTime::<Utc>::now();
     let solution = Plan::plan(&factory, &batches_needed, now);
-    println!();
-    println!("{:?}", solution);
+    //println!("\n{:?}", solution);
     let pla = Plan::pla_basic(solution.as_slice(), Plan::sort_by_batch);
     println!();
     println!("{}", pla);
@@ -301,5 +300,5 @@ fn main() {
     // @TODO: generate gantt chart
     // @TODO: calculate oee's
 
-    println!("ok");
+    //println!("ok");
 }

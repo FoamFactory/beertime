@@ -94,6 +94,7 @@ impl<'a> Plan<'a> {
         // 2) We setup some lookup tables to keep track of our variables
         let mut z3_step_times = HashMap::with_capacity(batches_needed.len() * 6 * 4);
         let mut z3_step_machine = HashMap::with_capacity(batches_needed.len() * 6);
+        let mut all_endings = Vec::new();
         let step_groups = StepGroup::all();
         let systems = System::all();
 
@@ -191,6 +192,7 @@ impl<'a> Plan<'a> {
                     step_group,
                     S1F
                 );
+                all_endings.push(ast::Dynamic::from_ast(&resource_available));
                 // TODO: in the future, some batches may be actually be in production,
                 //       that would mean that need to skip some steps and set another
                 //       start time here.
@@ -228,7 +230,7 @@ impl<'a> Plan<'a> {
                 )));
                 match prev {
                     None => prev = Some((step_group, machine_step, machine_counts)),
-                    Some((ref prev_step_group, ref prev_machine_step, prev_machine_counts)) => {
+                    Some((ref _prev_step_group, ref prev_machine_step, _prev_machine_counts)) => {
                         // TODO: find out why "if &step_group == prev_step_group && prev_machine_counts > 1 " fails
                         let same = machine_step._eq(prev_machine_step);
                         //     Constraint: Previous step's machine is not this step's machine
@@ -239,31 +241,20 @@ impl<'a> Plan<'a> {
         }
         // 3b) Now that we have variables for the start/stop-times and the machines,
         //     we can set up that one machine can only do 1 task at the same time.
-        for ((this_batch_id, this_step_group), this_step_machine) in z3_step_machine.iter() {
+        for ((this_batch_id, this_step_group), _this_step_machine) in z3_step_machine.iter() {
             // we unwrap here 4 * 2 times, but a pyramid of 'if let Some()' could also work
             let this_step_start = z3_step_times
                 .get(&(*this_batch_id, this_step_group.clone(), S1A))
-                .unwrap();
-            let this_step_stop = z3_step_times
-                .get(&(*this_batch_id, this_step_group.clone(), E1A))
-                .unwrap();
-            let this_next_go = z3_step_times
-                .get(&(*this_batch_id, this_step_group.clone(), S2A))
                 .unwrap();
             let this_resource_available = z3_step_times
                 .get(&(*this_batch_id, this_step_group.clone(), S1F))
                 .unwrap();
             let mut overlaps = Vec::new();
-            for ((other_batch_id, other_step_group), other_step_machine) in z3_step_machine.iter() {
+            for ((other_batch_id, other_step_group), _other_step_machine) in z3_step_machine.iter()
+            {
                 if this_batch_id != other_batch_id && this_step_group != other_step_group {
                     let other_step_start = z3_step_times
                         .get(&(*other_batch_id, other_step_group.clone(), S1A))
-                        .unwrap();
-                    let other_step_stop = z3_step_times
-                        .get(&(*other_batch_id, other_step_group.clone(), E1A))
-                        .unwrap();
-                    let other_next_go = z3_step_times
-                        .get(&(*other_batch_id, other_step_group.clone(), S2A))
                         .unwrap();
                     let other_resource_available = z3_step_times
                         .get(&(*other_batch_id, other_step_group.clone(), S1F))
@@ -292,20 +283,8 @@ impl<'a> Plan<'a> {
         // @TODO: set transfer and clean operation not during holidays
         // @TODO: Bottleneck first
         // @TODO: Buffer before bottleneck
-        /*
-        let mut all_endings = Vec::new();
-        let mut machine_totals = HashMap::with_capacity(factory.equipments.len());
-        let mut beers_totals = HashMap::with_capacity(factory.beers.len());
 
-        Plan::optimize(
-            &solver,
-            &ctx,
-            earliest_start,
-            all_endings,
-            machine_totals,
-            beers_totals,
-        );
-        */
+        Plan::optimize(&solver, &ctx, earliest_start, all_endings);
         Plan::process_solution(
             factory,
             batches_needed,
@@ -320,21 +299,11 @@ impl<'a> Plan<'a> {
         solver: &'ctx Optimize,
         ctx: &'ctx Context,
         earliest_start: DateTime<Utc>,
-        all_endings: Vec<&ast::Dynamic>,
-        machine_totals: HashMap<Equipment, i64>,
-        beers_totals: HashMap<Equipment, i64>,
+        all_endings: Vec<ast::Dynamic>,
     ) {
         // 4) We optimize for the shortest time that all machines are in the resource_available state
-        //    The variables all_endings, machine_totals and beers_totals help are the indicators.
-        let longest = vec![
-            machine_totals.values().max().unwrap(),
-            beers_totals.values().max().unwrap(),
-        ]
-        .iter()
-        .map(|x| *x)
-        .max()
-        .unwrap();
-        let longest_start = earliest_start.timestamp() as i64 + *longest;
+        //    The variabls all_endings
+        let longest_start = earliest_start.timestamp();
         let shortest_longest_duration_of_all_tasks = ast::Int::new_const(ctx, "Max time");
         let parameter_sorts = all_endings
             .iter()
@@ -347,14 +316,19 @@ impl<'a> Plan<'a> {
             oparameter_sorts.as_slice(),
             &Sort::int(ctx),
         );
+        //@FIXME: implement fmax function
         //     Constraint-hint: We can limit the search field, so that the optimize has less work.
         solver.assert(
             &shortest_longest_duration_of_all_tasks.ge(&ast::Int::from_i64(ctx, longest_start)),
         );
         //     Constraint-optimizer
+        let oall_endings = all_endings
+            .iter()
+            .map(|x| x)
+            .collect::<Vec<&ast::Dynamic>>();
         solver.assert(
             &shortest_longest_duration_of_all_tasks
-                ._eq(&fmax.apply(all_endings.as_slice()).as_int().unwrap()),
+                ._eq(&fmax.apply(oall_endings.as_slice()).as_int().unwrap()),
         );
         solver.minimize(&shortest_longest_duration_of_all_tasks);
     }
