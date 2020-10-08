@@ -127,7 +127,7 @@ impl<'a> Plan<'a> {
                 let machine_step = ast::Int::new_const(
                     &ctx,
                     format!(
-                        "started batch: {}, beer: {} step: {:?}",
+                        "Machine for batch: {}, beer: {} step: {:?}",
                         batch.beer.name,
                         batch.id,
                         step_group.clone()
@@ -142,7 +142,6 @@ impl<'a> Plan<'a> {
                         .map(|(int, _equ)| int)
                         .collect::<Vec<&ast::Int>>();
                     let mut ors = Vec::with_capacity(suited_machines.len());
-                    //for (machine_id, (int, eq)) in suited_machines.iter() {
                     for machine in suited_machines {
                         let allowed = machine_step._eq(machine);
                         ors.push(allowed);
@@ -302,9 +301,6 @@ impl<'a> Plan<'a> {
                         .get(&(*batch_id, step_group.clone()))
                         .unwrap();
                     let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
-                    println!("----");
-                    println!("{:?}", machine_lookup);
-                    println!("{:?}", machine_value);
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
                     let ts_value = model.eval(var).unwrap().as_i64().unwrap();
