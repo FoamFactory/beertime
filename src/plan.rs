@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::prelude::*;
-use z3::{ast, ast::Ast, Config, Context, SatResult, Solver, Sort};
+use z3::{ast, ast::Ast, Config, Context, SatResult, Solver};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
@@ -70,6 +70,7 @@ impl<'a> Plan<'a> {
         batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
         earliest_start: DateTime<Utc>,
     ) -> Vec<Plan<'a>> {
+        // 1) we setup the solver
         let mut cfg = Config::new();
         cfg.set_proof_generation(false);
         cfg.set_model_generation(true);
@@ -77,7 +78,7 @@ impl<'a> Plan<'a> {
         //cfg.set_timeout_msec(5_000);
         let ctx = Context::new(&cfg);
         let solver = Solver::new(&ctx);
-        let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
+
         /*
         ===================================================================================================================
                                 +---------------------------------------------------+------------------------------------
@@ -91,7 +92,7 @@ impl<'a> Plan<'a> {
         variable                step_start         step_stop               next_go  resource_available
                                  machine_step         machine_transfers     machine_clean
         */
-
+        // 2) We setup some lookup tables to keep track of our variables
         let mut z3_step_times = HashMap::with_capacity(batches_needed.len() * 6 * 4);
         let mut z3_step_machine = HashMap::with_capacity(batches_needed.len() * 6);
         let step_groups = StepGroup::all();
@@ -109,21 +110,25 @@ impl<'a> Plan<'a> {
             if let Some(map) =
                 z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.system.clone()))
             {
+                // @TODO: a ast::Sort of ast::Int would be better here, so that
+                //        we could check machine_step.member(suited_machines).
+                //        For some reason z3 gives a illegale exectution (don't remember)
+                //        error. Therefor, we use this (plain number) as a work around.
                 let machine = ast::Int::new_const(&ctx, format!("Equipment {}", equipment.name));
                 map.insert(machine_id, (machine.clone(), equipment.clone()));
-                // Constraint-like: give the machine a unqiue number, that can be added to every step
+                //     Constraint-like: give the machine a unqiue number, that can be added to every step
                 solver.assert(&machine._eq(&ast::Int::from_i64(&ctx, machine_id as i64)));
                 machine_id += 1;
             }
         }
-
+        // 3) We iterate through the batches and each of its steps
+        let start_horizon = ast::Int::from_i64(&ctx, earliest_start.timestamp());
         for batch in batches_needed.values() {
-            //println!("batch {} beer {}", batch.id, batch.beer.name);
             let mut prev = None;
             let mut start = start_horizon.clone();
             for (step_group, interval) in batch.steps() {
+                // Where we define some variables for the solver and add constraints
                 let (_earliest, longest) = interval.range();
-                //println!("\t step {:?} {:?}", step_group, longest.num_hours());
                 let machine_step = ast::Int::new_const(
                     &ctx,
                     format!(
@@ -148,7 +153,7 @@ impl<'a> Plan<'a> {
                         machine_counts += 1;
                     }
                     let bors = ors.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
-                    // Constraint: only one of these machines can be used for this step
+                    //     Constraint: only one of these machines can be used for this step
                     solver.assert(&ast::Bool::or(&ctx, bors.as_slice()));
                 }
                 gen_z3_var!(
@@ -190,9 +195,9 @@ impl<'a> Plan<'a> {
                 // TODO: in the future, some batches may be actually be in production,
                 //       that would mean that need to skip some steps and set another
                 //       start time here.
-                // Constraint: set start first step in future
+                //     Constraint: set start first step in future
                 solver.assert(&step_start.ge(&start));
-                // Constraint: set end of step .. or .. after start
+                //     Constraint: set end of step .. or .. after start
                 solver.assert(&step_stop._eq(&ast::Int::add(
                     &ctx,
                     &[
@@ -200,10 +205,9 @@ impl<'a> Plan<'a> {
                         &ast::Int::from_i64(&ctx, longest.num_seconds()),
                     ],
                 )));
-                // Constraint: the next step may only start after the previous
-                //             step is done.
-                //             although we did not do a 'assert' here, the effect
-                //              is the same due to the way that we set up this loop.
+                //     Constraint: the next step may only start after the previous step is done.
+                //      Although we did not do a 'assert' here, the effect
+                //      is the same due to the way that we set up this loop.
                 let transfer_time = step_group.post_process_time(batch.system);
                 solver.assert(&next_go._eq(&ast::Int::add(
                     &ctx,
@@ -213,7 +217,7 @@ impl<'a> Plan<'a> {
                     ],
                 )));
                 start = next_go.clone();
-                // Constraint: the equipment is available after the cleaning
+                //     Constraint: the equipment is available after the cleaning
                 let clean_time = step_group.post_process_time(batch.system);
                 solver.assert(&resource_available._eq(&ast::Int::add(
                     &ctx,
@@ -227,17 +231,18 @@ impl<'a> Plan<'a> {
                     Some((ref prev_step_group, ref prev_machine_step, prev_machine_counts)) => {
                         if &step_group == prev_step_group && prev_machine_counts > 1 {
                             let same = machine_step._eq(prev_machine_step);
-                            // Constraint: Previous step's machine is not this step's machine
+                            //     Constraint: Previous step's machine is not this step's machine
                             solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
                         }
                     }
                 }
             }
         }
+        // 3b) Now that we have variables for the start/stop-times and the machines,
+        //     we can set up that one machine can only do 1 task at the same time.
 
-        // Constraint: both the resources are occupied during transfer
-        // Constraint: clean machine is the same as the machine that made it dirty
-
+        //     Constraint: both the resources are occupied during transfer
+        //     Constraint: clean machine is the same as the machine that made it dirty
         // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
         // @TODO: set transfer and clean operation only during office hours
         // @TODO: set transfer and clean operation not during holidays
