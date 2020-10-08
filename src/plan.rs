@@ -110,7 +110,9 @@ impl<'a> Plan<'a> {
                 z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.system.clone()))
             {
                 let machine = ast::Int::new_const(&ctx, format!("Equipment {}", equipment.name));
-                map.insert(machine_id, (machine, equipment.clone()));
+                map.insert(machine_id, (machine.clone(), equipment.clone()));
+                // Constraint-like: give the machine a unqiue number, that can be added to every step
+                solver.assert(&machine._eq(&ast::Int::from_i64(&ctx, machine_id as i64)));
                 machine_id += 1;
             }
         }
@@ -133,21 +135,23 @@ impl<'a> Plan<'a> {
                 );
                 z3_step_machine.insert((batch.id, step_group.clone()), machine_step.clone());
                 let equipment_group = step_group.equipment_group();
+                let mut machine_counts = 0;
                 if let Some(suited) = z3_machines.get(&(equipment_group, batch.system.clone())) {
                     let suited_machines = suited
                         .values()
                         .map(|(int, _equ)| int)
                         .collect::<Vec<&ast::Int>>();
                     let mut ors = Vec::with_capacity(suited_machines.len());
+                    //for (machine_id, (int, eq)) in suited_machines.iter() {
                     for machine in suited_machines {
-                        let allowed = machine_step._eq(&machine);
+                        let allowed = machine_step._eq(machine);
                         ors.push(allowed);
+                        machine_counts += 1;
                     }
                     let bors = ors.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
                     // Constraint: only one of these machines can be used for this step
                     solver.assert(&ast::Bool::or(&ctx, bors.as_slice()));
                 }
-
                 gen_z3_var!(
                     z3_step_times,
                     step_start,
@@ -220,9 +224,9 @@ impl<'a> Plan<'a> {
                     ],
                 )));
                 match prev {
-                    None => prev = Some((step_group, machine_step)),
-                    Some((ref prev_step_group, ref prev_machine_step)) => {
-                        if &step_group == prev_step_group {
+                    None => prev = Some((step_group, machine_step, machine_counts)),
+                    Some((ref prev_step_group, ref prev_machine_step, prev_machine_counts)) => {
+                        if &step_group == prev_step_group && prev_machine_counts > 1 {
                             let same = machine_step._eq(prev_machine_step);
                             // Constraint: Previous step's machine is not this step's machine
                             solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
