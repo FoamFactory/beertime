@@ -47,7 +47,7 @@ fn load_equipment(factory: &mut Factory) {
             Volume::Lb(5.0),
         ));
     }
-    for i in 0..2 {
+    for i in 0..14 {
         eqs.push(Equipment::new(
             format!("Keg 5G {}", i),
             System::G10,
