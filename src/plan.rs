@@ -484,6 +484,10 @@ impl<'a> Plan<'a> {
                 }
             }
         }
+        // Put steps in each sequence in a logical order: from brew->aging
+        for seq in out.values_mut() {
+            seq.sort_by(|a, b| a.step_group.cmp(&b.step_group));
+        }
 
         out
     }

@@ -3,7 +3,7 @@ use chrono::Duration;
 use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum StepGroup {
     Brewing,
     PrimaryFermentation,
