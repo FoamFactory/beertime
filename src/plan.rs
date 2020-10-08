@@ -206,8 +206,8 @@ impl<'a> Plan<'a> {
                     ],
                 )));
                 //     Constraint: the next step may only start after the previous step is done.
-                //      Although we did not do a 'assert' here, the effect
-                //      is the same due to the way that we set up this loop.
+                //     Although we did not do a 'assert' here, the effect
+                //     is the same due to the way that we set up this loop.
                 let transfer_time = step_group.post_process_time(batch.system);
                 solver.assert(&next_go._eq(&ast::Int::add(
                     &ctx,
@@ -218,6 +218,7 @@ impl<'a> Plan<'a> {
                 )));
                 start = next_go.clone();
                 //     Constraint: the equipment is available after the cleaning
+                //     Implied Constraint: clean machine is the same as the machine that made it dirty
                 let clean_time = step_group.post_process_time(batch.system);
                 solver.assert(&resource_available._eq(&ast::Int::add(
                     &ctx,
@@ -240,9 +241,54 @@ impl<'a> Plan<'a> {
         }
         // 3b) Now that we have variables for the start/stop-times and the machines,
         //     we can set up that one machine can only do 1 task at the same time.
+        for ((this_batch_id, this_step_group), this_step_machine) in z3_step_machine.iter() {
+            let this_step_start = z3_step_times
+                .get(&(*this_batch_id, this_step_group.clone(), S1A))
+                .unwrap();
+            let this_step_stop = z3_step_times
+                .get(&(*this_batch_id, this_step_group.clone(), E1A))
+                .unwrap();
+            let this_next_go = z3_step_times
+                .get(&(*this_batch_id, this_step_group.clone(), S2A))
+                .unwrap();
+            let this_resource_available = z3_step_times
+                .get(&(*this_batch_id, this_step_group.clone(), S1F))
+                .unwrap();
+            let mut overlaps = Vec::new();
+            for ((other_batch_id, other_step_group), other_step_machine) in z3_step_machine.iter() {
+                if this_batch_id != other_batch_id && this_step_group != other_step_group {
+                    let other_step_start = z3_step_times
+                        .get(&(*other_batch_id, other_step_group.clone(), S1A))
+                        .unwrap();
+                    let other_step_stop = z3_step_times
+                        .get(&(*other_batch_id, other_step_group.clone(), E1A))
+                        .unwrap();
+                    let other_next_go = z3_step_times
+                        .get(&(*other_batch_id, other_step_group.clone(), S2A))
+                        .unwrap();
+                    let other_resource_available = z3_step_times
+                        .get(&(*other_batch_id, other_step_group.clone(), S1F))
+                        .unwrap();
+                    //     Constraint: This machine in occupied from step_start till resource_available
+                    overlaps.push(ast::Bool::and(
+                        &ctx,
+                        &[&this_resource_available.le(&other_step_start)],
+                    ));
+                    overlaps.push(ast::Bool::and(
+                        &ctx,
+                        &[&other_resource_available.le(&this_step_start)],
+                    ));
+                    // todo....The other machine is also occupied from step_stop till next_go
+                }
+            }
+            let ooverlaps = &overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
+            solver.assert(&ast::Bool::or(
+                &ctx,
+                &[&ast::Bool::and(&ctx, ooverlaps.as_slice())],
+            ));
+        }
 
         //     Constraint: both the resources are occupied during transfer
-        //     Constraint: clean machine is the same as the machine that made it dirty
         // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
         // @TODO: set transfer and clean operation only during office hours
         // @TODO: set transfer and clean operation not during holidays
