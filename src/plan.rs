@@ -203,8 +203,13 @@ impl<'a> Plan<'a> {
                 // TODO: in the future, some batches may be actually be in production,
                 //       that would mean that need to skip some steps and set another
                 //       start time here.
-                //     Constraint: set start first step in future
-                solver.assert(&step_start.ge(&start));
+                if step_group == StepGroup::Brewing {
+                    //     Constraint: if it is the brewstep, set start first step in future
+                    solver.assert(&step_start.ge(&start));
+                } else {
+                    //     Constraint: subsequential steps should have no delays.
+                    solver.assert(&step_start._eq(&start));
+                }
                 //     Constraint: set end of step .. or .. after start
                 solver.assert(&step_stop._eq(&ast::Int::add(
                     &ctx,
