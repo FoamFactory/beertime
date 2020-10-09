@@ -93,6 +93,7 @@ impl<'a> Plan<'a> {
                                                    +-----------------------------------------------------------------
         Manual labour                               xxxx               xxxx   xxxxx
         ========================^==================^========================^=======^========================================
+                                brewday                                             brewday
         Time                    S1A                E1A                      S2A     S1F
         variable                step_start         step_stop               next_go  resource_available
                                  machine_step         machine_transfers     machine_clean
@@ -247,10 +248,14 @@ impl<'a> Plan<'a> {
         }
         // 3b) Now that we have variables for the start/stop-times and the machines,
         //     we can set up that one machine can only do 1 task at the same time.
+        let one_quart_day = ast::Int::from_i64(&ctx, 6 * 3600);
         for ((this_batch_id, this_step_group), _this_step_machine) in z3_step_machine.iter() {
             // we unwrap here 4 * 2 times, but a pyramid of 'if let Some()' could also work
             let this_step_start = z3_step_times
                 .get(&(*this_batch_id, this_step_group.clone(), S1A))
+                .unwrap();
+            let this_next_go = z3_step_times
+                .get(&(*this_batch_id, this_step_group.clone(), S2A))
                 .unwrap();
             let this_resource_available = z3_step_times
                 .get(&(*this_batch_id, this_step_group.clone(), S1F))
@@ -258,31 +263,55 @@ impl<'a> Plan<'a> {
             let mut overlaps = Vec::new();
             for ((other_batch_id, other_step_group), _other_step_machine) in z3_step_machine.iter()
             {
-                if this_batch_id != other_batch_id && this_step_group != other_step_group {
+                if this_batch_id != other_batch_id {
                     let other_step_start = z3_step_times
                         .get(&(*other_batch_id, other_step_group.clone(), S1A))
+                        .unwrap();
+                    let other_next_go = z3_step_times
+                        .get(&(*other_batch_id, other_step_group.clone(), S2A))
                         .unwrap();
                     let other_resource_available = z3_step_times
                         .get(&(*other_batch_id, other_step_group.clone(), S1F))
                         .unwrap();
-                    //     Constraint: This machine in occupied from step_start till resource_available
-                    overlaps.push(
-                        ast::Bool::and(
+                    if this_step_group != other_step_group {
+                        //     Constraint: This machine in occupied from step_start till resource_available
+                        overlaps.push(
+                            ast::Bool::and(
+                                &ctx,
+                                &[
+                                    &this_resource_available.ge(&other_step_start),
+                                    &other_resource_available.ge(&this_step_start),
+                                ],
+                            )
+                            .not(),
+                        );
+                    }
+                    // 3c) limit the number of brew that can happen 'simultanously'
+                    if this_step_group == &StepGroup::Brewing
+                        && other_step_group == &StepGroup::Brewing
+                    {
+                        //     Constraint: there are at least 6 hours between 2 brews
+                        //                 This basically limits it to one brew per day :-(
+                        solver.assert(&ast::Bool::or(
                             &ctx,
-                            &[
-                                &this_resource_available.ge(&other_step_start),
-                                &other_resource_available.ge(&this_step_start),
-                            ],
-                        )
-                        .not(),
-                    );
-                    // @TODO....The other machine is also occupied from step_stop till next_go
+                            &[&ast::Bool::and(
+                                &ctx,
+                                &[
+                                    &ast::Int::add(&ctx, &[&this_next_go, &one_quart_day])
+                                        .ge(other_step_start),
+                                    &ast::Int::add(&ctx, &[&other_next_go, &one_quart_day])
+                                        .ge(this_step_start),
+                                ],
+                            )
+                            .not()],
+                        ))
+                    }
                 }
+                // 3d) @TODO....The other machine is also occupied from step_stop till next_go
             }
             let ooverlaps = overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
             solver.assert(&ast::Bool::or(&ctx, ooverlaps.as_slice()));
         }
-
         //     Constraint: both the resources are occupied during transfer
         // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
         // @TODO: set transfer and clean operation only during office hours
