@@ -11,6 +11,12 @@ use crate::factory::Factory;
 use crate::step_group::StepGroup;
 use crate::system::System;
 
+/*
+Premium customers coin insertion slot
+There is not much improvement after 5 iterations, it only will take much longer.
+*/
+const REPEAT: usize = 5;
+
 #[derive(Debug, PartialEq)]
 pub struct Plan<'a> {
     id: usize,
@@ -284,7 +290,7 @@ impl<'a> Plan<'a> {
         // @TODO: Bottleneck first
         // @TODO: Buffer before bottleneck
 
-        Plan::optimize(&solver, &ctx, earliest_start, all_endings);
+        Plan::optimize(&solver, &ctx, earliest_start, all_endings.as_slice());
         Plan::process_solution(
             factory,
             batches_needed,
@@ -292,6 +298,7 @@ impl<'a> Plan<'a> {
             z3_machines,
             z3_step_machine,
             z3_step_times,
+            all_endings.as_slice(),
         )
     }
 
@@ -299,7 +306,7 @@ impl<'a> Plan<'a> {
         solver: &'ctx Optimize,
         ctx: &'ctx Context,
         earliest_start: DateTime<Utc>,
-        all_endings: Vec<ast::Int>,
+        all_endings: &[ast::Int<'ctx>],
     ) {
         // 4) We optimize for the shortest time that all machines are in the resource_available state
         //    The variabls all_endings
@@ -324,13 +331,17 @@ impl<'a> Plan<'a> {
         z3_machines: HashMap<(EquipmentGroup, System), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
         z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
         z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
+        all_endings: &[ast::Int<'ctx>],
     ) -> Vec<Plan<'a>> {
         let mut machine_lookup = HashMap::with_capacity(factory.equipments.len());
         for (k, (_int, equ)) in z3_machines.values().flatten() {
             machine_lookup.insert(*k, equ);
         }
 
-        match solver.check(&[]) {
+        let assumptions = vec![];
+        Plan::limit_further(&solver, assumptions.as_slice(), all_endings, REPEAT);
+
+        match solver.check(assumptions.as_slice()) {
             SatResult::Unsat => {
                 println!("No solution found!");
                 panic!("TODO: better error handling");
@@ -466,6 +477,38 @@ impl<'a> Plan<'a> {
                 return solutions;
             }
         };
+    }
+    fn limit_further<'ctx>(
+        solver: &'ctx Optimize,
+        assumptions: &'ctx [ast::Bool<'ctx>],
+        all_endings: &[ast::Int<'ctx>],
+        repeat: usize,
+    ) {
+        for i in 0..repeat {
+            solver.push();
+            match solver.check(assumptions) {
+                SatResult::Sat => {
+                    if i == repeat - 1 {
+                        return;
+                    }
+                    let model = solver.get_model();
+                    // @TODO: investigate why solver.pop/push around this loop
+                    //        leads to worse planning outcomes.  My intuition
+                    //        would say that adding more constraints would make
+                    //        it slower as more conditions need to be checked.
+                    //        but it appears that z3 can make better heuristics
+                    //        when there are more overlapping constraints.
+                    for ending in all_endings {
+                        let cur_val = model.eval(ending).unwrap();
+                        solver.assert(&ending.le(&cur_val));
+                    }
+                }
+                _ => {
+                    solver.pop();
+                    return;
+                }
+            }
+        }
     }
 
     // @TODO: sort_by_equipment_group
