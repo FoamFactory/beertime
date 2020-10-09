@@ -1,5 +1,10 @@
 use chrono::Duration;
 
+const DELTA_FOR_HOURS_IN_MINUTES: i64 = 30;
+const DELTA_FOR_DAYS_IN_HOURS: i64 = 8;
+const DELTA_FOR_WEEKS_IN_DAYS: i64 = 4;
+const DELTA_FOR_MONTHS_IN_DAYS: i64 = 7;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Interval {
     Hours(u8),
@@ -28,22 +33,21 @@ impl Interval {
 
     pub fn range(&self) -> (Duration, Duration) {
         let d = self.duration();
-        // TODO: easier configuration instead of magical constants
         match self {
             Interval::Hours(_x) => {
-                let delta = Duration::minutes(30);
+                let delta = Duration::minutes(DELTA_FOR_HOURS_IN_MINUTES);
                 (d - delta, d + delta)
             }
             Interval::Days(_x) => {
-                let delta = Duration::hours(8);
+                let delta = Duration::hours(DELTA_FOR_DAYS_IN_HOURS);
                 (d - delta, d + delta)
             }
             Interval::Weeks(_x) => {
-                let delta = Duration::days(4);
+                let delta = Duration::days(DELTA_FOR_WEEKS_IN_DAYS);
                 (d - delta, d + delta)
             }
             Interval::Months(_x) => {
-                let delta = Duration::days(7);
+                let delta = Duration::days(DELTA_FOR_MONTHS_IN_DAYS);
                 (d - delta, d + delta)
             }
         }
