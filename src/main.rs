@@ -33,7 +33,7 @@ fn load_equipment(factory: &mut Factory) {
     ];
     for i in 0..7 {
         eqs.push(Equipment::new(
-            format!("Fermentor 15G G10 {}", i),
+            format!("Fermentor 15G G10 {}", i + 1),
             System::G10,
             EquipmentGroup::Fermentor,
             Volume::GallonUS(15.0),
@@ -41,7 +41,7 @@ fn load_equipment(factory: &mut Factory) {
     }
     for i in 0..2 {
         eqs.push(Equipment::new(
-            format!("CO2 Tank 5Lb G10 {}", i),
+            format!("CO2 Tank 5Lb G10 {}", i + 1),
             System::G10,
             EquipmentGroup::CO2Tank,
             Volume::Lb(5.0),
@@ -49,7 +49,7 @@ fn load_equipment(factory: &mut Factory) {
     }
     for i in 0..14 {
         eqs.push(Equipment::new(
-            format!("Keg 5G {}", i),
+            format!("Keg 5G {}", i + 1),
             System::G10,
             EquipmentGroup::Keg,
             Volume::GallonUS(5.0),
