@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::Duration;
+use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::batchneed::BatchNeed;
 use crate::beer::Beer;
@@ -28,28 +29,124 @@ impl Factory {
 
     pub fn calculate_batches(
         &self,
-        wishlist: Vec<(&'static str, Volume)>,
+        wishlist: HashMap<&'static str, (&Beer, Volume)>,
     ) -> HashMap<usize, BatchNeed> {
         let mut batches_needed = HashMap::with_capacity(wishlist.len());
-        let mut id = 1;
-        for (beer_name, quantity) in wishlist {
-            let beer = self
-                .beers
-                .get(beer_name)
-                .expect(&format!("Unknow beer: {}", beer_name));
-            //FIXME: we now take the first recipy that is registered,
-            //       this should be done by the solver
-            let (system, (r#yield, _steps)) = beer
-                .recipy
-                .map
-                .iter()
-                .nth(0)
-                .expect(&format!("Unknown recipy for beer: {}", beer_name));
-            let counts = quantity.full_batches(r#yield);
-            for _i in 0..counts {
-                let batch = BatchNeed::new(id, beer, system, r#yield.clone());
-                batches_needed.insert(batch.id, batch);
-                id += 1;
+        let mut cfg = Config::new();
+        cfg.set_proof_generation(false);
+        cfg.set_model_generation(true);
+        cfg.set_debug_ref_count(false);
+        let ctx = Context::new(&cfg);
+        let solver = Optimize::new(&ctx);
+
+        let mut existing_systems = self
+            .equipments
+            .values()
+            .map(|e| e.system.clone())
+            .collect::<Vec<System>>();
+        existing_systems.sort();
+        existing_systems.dedup();
+        let mut systems = HashMap::new();
+        for system in &existing_systems {
+            match systems.get_mut(system) {
+                None => {
+                    if let Volume::Liter(liters) = system.volume().to_liter() {
+                        // @FIXME: from i64 to real
+                        systems.insert(system, ast::Int::from_i64(&ctx, liters as i64));
+                    } else {
+                        panic!("should not happen");
+                    }
+                }
+                _ => { /* TODO: Take the smallest volume from the equipments in that system.
+                                    Not sure if that would work, because these are probably kegs.
+                     */
+                }
+            }
+        }
+        let total_batches = ast::Int::new_const(&ctx, "total batches");
+        let mut all_beer_batches = Vec::with_capacity(wishlist.len());
+        let mut all_beer_system_batches = HashMap::new();
+        for (name, (_beer, volume)) in &wishlist {
+            if let Volume::Liter(needed_liters) = volume.to_liter() {
+                let beer_need = ast::Int::new_const(&ctx, format!("beer need {}", name));
+                //@fixme: also here from i64 to real
+                solver.assert(&beer_need._eq(&ast::Int::from_i64(&ctx, needed_liters as i64)));
+                let beer_total = ast::Int::new_const(&ctx, format!("beer total {}", name));
+                let mut beer_system_volumes = Vec::with_capacity(systems.len());
+                for (system, r#_yield) in &systems {
+                    let beer_system_batches = ast::Int::new_const(
+                        &ctx,
+                        format!("beer {} system {} batches", name, system.lookup()),
+                    );
+                    all_beer_batches.push(beer_system_batches.clone());
+                    all_beer_system_batches.insert((name, system), beer_system_batches.clone());
+                    let beer_system_volume =
+                        ast::Int::new_const(&ctx, format!("beer systems volume {}", name));
+                    solver.assert(&beer_system_batches.ge(&ast::Int::from_i64(&ctx, 0)));
+                    let r#yield = systems.get(system).unwrap();
+                    solver.assert(
+                        &beer_system_volume
+                            ._eq(&ast::Int::mul(&ctx, &[&beer_system_batches, r#yield])),
+                    );
+                    beer_system_volumes.push(beer_system_volume);
+                }
+                solver.assert(
+                    &beer_total.le(&ast::Int::add(
+                        &ctx,
+                        beer_system_volumes
+                            .iter()
+                            .map(|x| x)
+                            .collect::<Vec<&ast::Int>>()
+                            .as_slice(),
+                    )),
+                );
+                solver.assert(&beer_total.ge(&beer_need));
+            }
+        }
+
+        solver.assert(
+            &total_batches._eq(&ast::Int::add(
+                &ctx,
+                &all_beer_batches
+                    .iter()
+                    .map(|x| x)
+                    .collect::<Vec<&ast::Int>>()
+                    .as_slice(),
+            )),
+        );
+        solver.minimize(&total_batches);
+        match solver.check(&[]) {
+            SatResult::Sat => {
+                let model = solver.get_model();
+                let mut id = 1;
+                for ((name, system), batch_count_int) in all_beer_system_batches.iter() {
+                    let batch_count = model.eval(batch_count_int).unwrap().as_i64().unwrap();
+                    let beer = self.beers.get(&name.to_string()).unwrap();
+                    for i in 0..batch_count {
+                        let mut vol = system.volume();
+                        if i == batch_count - 1 {
+                            if let Volume::Liter(want_liter) =
+                                wishlist.get(*name).unwrap().1.to_liter()
+                            {
+                                if let Volume::Liter(batch_liter) = system.volume().to_liter() {
+                                    vol = Volume::Liter(want_liter - batch_liter * i as f32)
+                                }
+                            }
+                        }
+                        if let Volume::Liter(liter) = vol.to_liter() {
+                            if liter > 0.0 {
+                                let batch =
+                                    BatchNeed::new(id, beer, system.clone().clone().clone(), vol);
+                                batches_needed.insert(batch.id, batch);
+                                id += 1;
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {
+                //todo better error handling
+                panic!("Can't calculate batches for these quanties and systems/equipment")
             }
         }
 
@@ -62,7 +159,7 @@ impl Factory {
     ) -> Vec<(System, StepGroup, Duration)> {
         let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
         for batch in batches_needed.values() {
-            let (_volume, steps) = batch.beer.recipy.get(batch.system).expect(&format!(
+            let (_volume, steps) = batch.beer.recipy.get(&batch.system).expect(&format!(
                 "Beer {} should have a recipy for system {:?}",
                 batch.beer.name, batch.system
             ));

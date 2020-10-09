@@ -221,7 +221,7 @@ impl<'a> Plan<'a> {
                 //     Constraint: the next step may only start after the previous step is done.
                 //     Although we did not do a 'assert' here, the effect
                 //     is the same due to the way that we set up this loop.
-                let transfer_time = step_group.post_process_time(batch.system);
+                let transfer_time = step_group.post_process_time(&batch.system);
                 solver.assert(&next_go._eq(&ast::Int::add(
                     &ctx,
                     &[
@@ -232,7 +232,7 @@ impl<'a> Plan<'a> {
                 start = next_go.clone();
                 //     Constraint: the equipment is available after the cleaning
                 //     Implied Constraint: clean machine is the same as the machine that made it dirty
-                let clean_time = step_group.post_process_time(batch.system);
+                let clean_time = step_group.post_process_time(&batch.system);
                 solver.assert(&resource_available._eq(&ast::Int::add(
                     &ctx,
                     &[
@@ -685,14 +685,14 @@ mod tests {
         let beer = beer::mock::beer();
         let system = system::mock::bbl5();
         let equipment = equipment::mock::equipment();
-        let batchneed = batchneed::mock::batchneed(&beer, &system);
+        let batchneed = batchneed::mock::batchneed(&beer, system.clone());
         let step_group = step_group::mock::brewing();
         let plan = mock::plan(equipment.clone(), step_group.clone(), &batchneed);
         let equipment = equipment::mock::equipment();
         assert_eq!(plan.id, 666);
         assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.step_group, step_group);
-        assert_eq!(plan.batch.system, &system);
+        assert_eq!(plan.batch.system, system);
         assert_eq!(plan.action, action::mock::process(equipment));
         assert!(plan.start < plan.end);
     }
@@ -701,7 +701,7 @@ mod tests {
     fn test_plan_do_magic() {
         let factory = factory::mock::factory();
         let now: DateTime<Utc> = Utc::now();
-        let wishlist = vec![];
+        let wishlist = HashMap::new();
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
         let _solution = Plan::plan(&factory, &batches_needed, now);

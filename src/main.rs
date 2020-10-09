@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use beertime::beer::Beer;
 use beertime::equipment::Equipment;
 use beertime::equipment_group::EquipmentGroup;
@@ -260,12 +262,17 @@ fn load_recipies(factory: &mut Factory) {
     }
 }
 
-fn wishlist(_factory: &Factory) -> Vec<(&'static str, Volume)> {
-    vec![
+fn wishlist(factory: &Factory) -> HashMap<&'static str, (&Beer, Volume)> {
+    let config = vec![
         ("Bier", Volume::GallonUS(30.0)),
         ("Anti-Scurvy Elixir", Volume::GallonUS(70.0)),
         ("Autumn's Early Arrival Blonde", Volume::GallonUS(90.0)),
-    ]
+    ];
+    let mut wishlist = HashMap::with_capacity(config.len());
+    for (name, volume) in config {
+        wishlist.insert(name, (factory.beers.get(name).unwrap(), volume));
+    }
+    wishlist
 }
 
 fn load(factory: &mut Factory) {
