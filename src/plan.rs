@@ -13,9 +13,9 @@ use crate::system::System;
 
 /*
 Premium customers coin insertion slot
-There is not much improvement after 5 iterations, it only will take much longer.
+There is not much improvement after 15 iterations, it only will take much longer.
 */
-const REPEAT: usize = 5;
+const REPEAT: usize = 15;
 
 #[derive(Debug, PartialEq)]
 pub struct Plan<'a> {
@@ -276,7 +276,7 @@ impl<'a> Plan<'a> {
                         )
                         .not(),
                     );
-                    // todo....The other machine is also occupied from step_stop till next_go
+                    // @TODO....The other machine is also occupied from step_stop till next_go
                 }
             }
             let ooverlaps = overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
