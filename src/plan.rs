@@ -117,10 +117,10 @@ impl<'a> Plan<'a> {
             if let Some(map) =
                 z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.system.clone()))
             {
-                // @TODO: a ast::Sort of ast::Int would be better here, so that
-                //        we could check machine_step.member(suited_machines).
-                //        For some reason z3 gives a illegale exectution (don't remember)
-                //        error. Therefor, we use this (plain number) as a work around.
+                // For some reason z3 gives a illegale exectution (don't remember)
+                // error when we use a ast::Set of ast::Sort::int(). Therefor,
+                // we use this (plain number) as a work around.
+                // In the future we could go back to that or investigate ast::Array
                 let machine = ast::Int::new_const(&ctx, format!("Equipment {}", equipment.name));
                 map.insert(machine_id, (machine.clone(), equipment.clone()));
                 //     Constraint-like: give the machine a unqiue number, that can be added to every step
@@ -200,9 +200,9 @@ impl<'a> Plan<'a> {
                     S1F
                 );
                 all_endings.push(resource_available.clone());
-                // TODO: in the future, some batches may be actually be in production,
-                //       that would mean that need to skip some steps and set another
-                //       start time here.
+                // In the future, some batches may be actually be in production,
+                // that would mean that need to skip some steps and set another
+                // start time here.
                 if step_group == StepGroup::Brewing {
                     //     Constraint: if it is the brewstep, set start first step in future
                     solver.assert(&step_start.ge(&start));
@@ -242,11 +242,12 @@ impl<'a> Plan<'a> {
                 )));
                 match prev {
                     None => prev = Some((step_group, machine_step, machine_counts)),
-                    Some((ref _prev_step_group, ref prev_machine_step, _prev_machine_counts)) => {
-                        // TODO: find out why "if &step_group == prev_step_group && prev_machine_counts > 1 " fails
-                        let same = machine_step._eq(prev_machine_step);
-                        //     Constraint: Previous step's machine is not this step's machine
-                        solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
+                    Some((ref prev_step_group, ref prev_machine_step, prev_machine_counts)) => {
+                        if &step_group == prev_step_group && prev_machine_counts > 1 {
+                            let same = machine_step._eq(prev_machine_step);
+                            //     Constraint: Previous step's machine is not this step's machine
+                            solver.assert(&ast::Bool::and(&ctx, &[&same]).not());
+                        }
                     }
                 }
             }
@@ -317,12 +318,12 @@ impl<'a> Plan<'a> {
             let ooverlaps = overlaps.iter().map(|x| x).collect::<Vec<&ast::Bool>>();
             solver.assert(&ast::Bool::or(&ctx, ooverlaps.as_slice()));
         }
-        //     Constraint: both the resources are occupied during transfer
-        // @TODO: avoid duplicate use of machine during operation, transfer or cleaning
-        // @TODO: set transfer and clean operation only during office hours
-        // @TODO: set transfer and clean operation not during holidays
-        // @TODO: Bottleneck first
-        // @TODO: Buffer before bottleneck
+        // In the future, we might limit the periods where brew, transfer and
+        // clean may happen, (officehours/atnight, workdays/weekends/ holidays).
+        // But that is probably overkill because we take the longest
+        // interval.range() during the planning stage. The exact conditions
+        // when the beer is good enough to go to the nex stage are probably earlier.
+        // thus the braumeister should have time to fine tune the schedule.
 
         Plan::optimize(&solver, &ctx, earliest_start, all_endings.as_slice());
         Plan::process_solution(
@@ -344,9 +345,9 @@ impl<'a> Plan<'a> {
     ) {
         // 4) We optimize for the shortest time that all machines are in the resource_available state
         //    The variabls all_endings
-        // @TODO: we could limit the search space a bit, by setting the longest duration of each batch
-        //        This would probably improve the speed up a bit when there are less batches then fermentors.
-        //        And even then, there are not much batches, so there is not much to optimize for.
+        // We could limit the search space a bit, by setting the longest duration of each batch
+        // This would probably improve the speed up a bit when there are less batches then fermentors.
+        // And even then, there are not much batches, so there is not much to optimize for.
         let longest_start = earliest_start.timestamp();
         let longest_duration_of_all_tasks = ast::Int::new_const(ctx, "Max time");
         let mut block: ast::Int = ast::Int::from_i64(&ctx, longest_start);
@@ -393,7 +394,7 @@ impl<'a> Plan<'a> {
                 // First normalize all the z3 variables into a hashmap that let
                 // us see the process, transfer and clean timestamps and the
                 // involved equimpent
-                let mut temp: HashMap<
+                let mut events: HashMap<
                     (usize, StepGroup),
                     (
                         Option<Equipment>,
@@ -415,7 +416,7 @@ impl<'a> Plan<'a> {
                     let ts_value = model.eval(var).unwrap().as_i64().unwrap();
                     let ts =
                         DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_value, 0), Utc);
-                    match temp.get_mut(&(*batch_id, step_group.clone())) {
+                    match events.get_mut(&(*batch_id, step_group.clone())) {
                         None => {
                             let mut ts1a = None;
                             let mut te1a = None;
@@ -428,7 +429,7 @@ impl<'a> Plan<'a> {
                                 S1F => ts1f = Some(ts),
                                 _ => panic!("should not happen"),
                             };
-                            temp.insert(
+                            events.insert(
                                 (*batch_id, step_group.clone()),
                                 (
                                     Some(equipment.clone().clone().clone()),
@@ -459,18 +460,18 @@ impl<'a> Plan<'a> {
                             };
                         }
                     }
-                    //println!("{} {:?} {} {:?}", batch_id, step_group, label, ts);
                 }
-                // now we can build a Vec<Plan> with the known actions
-                // @TODO: investigate is this is realy needed after all.
-                let mut solutions: Vec<Plan> = Vec::with_capacity(temp.len() * 3);
+                // Now we can build a Vec<Plan> with the known actions
+                // In the future this could be refactored. The Plan struct
+                // might be replaced with the value type that we use in the events
+                // hashmap.
+                let mut solutions: Vec<Plan> = Vec::with_capacity(events.len() * 3);
                 let mut plan_id = 1;
-                for tmp in temp.iter() {
-                    //println!("{:?}", tmp);
+                for event in events.iter() {
                     let (
                         (batch_id, step_group),
                         (equipment, ts1a, te1a, ts2a, ts1f, other_equipment),
-                    ) = tmp;
+                    ) = event;
                     let batch = batches_needed.get(batch_id).unwrap();
                     solutions.push(Plan::new(
                         plan_id,
@@ -526,12 +527,12 @@ impl<'a> Plan<'a> {
                         return;
                     }
                     let model = solver.get_model();
-                    // @TODO: investigate why solver.pop/push around this loop
-                    //        leads to worse planning outcomes.  My intuition
-                    //        would say that adding more constraints would make
-                    //        it slower as more conditions need to be checked.
-                    //        but it appears that z3 can make better heuristics
-                    //        when there are more overlapping constraints.
+                    // Wrapping a solver.pop/push around this loop leads to worse
+                    // planning outcomes.  This is strange because my intuition
+                    // would say that adding more constraints would make it
+                    // slower as more conditions need to be checked.  But it
+                    // appears that z3 can make better heuristics when there
+                    // are more overlapping constraints.
                     for ending in all_endings {
                         let cur_val = model.eval(ending).unwrap();
                         solver.assert(&ending.le(&cur_val));
@@ -705,6 +706,6 @@ mod tests {
         // @FIXME: better test case: real beer in factory
         let batches_needed = factory.calculate_batches(wishlist);
         let _solution = Plan::plan(&factory, &batches_needed, now);
-        //@TODO: better tests
+        // @TODO: better tests
     }
 }
