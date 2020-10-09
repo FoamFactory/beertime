@@ -546,12 +546,19 @@ impl<'a> Plan<'a> {
         }
     }
 
-    // @TODO: sort_by_equipment_group
-    //        sort_by_equipment
-    //        sort_by_step_group,
-    //        sort_by_step
-    //        sort_by_beer,
-    //        sort_by_style,
+    pub fn sort_by_step_group(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
+        Plan::sort_by_xxxx(planning, |plan| plan.step_group.lookup().to_string())
+    }
+
+    pub fn sort_by_style(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
+        Plan::sort_by_xxxx(planning, |plan| plan.batch.beer.style.lookup().to_string())
+    }
+
+    pub fn sort_by_beer(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
+        Plan::sort_by_xxxx(planning, |plan| plan.batch.beer.name.to_string())
+    }
+
+    // @TODO: investigate why this sort_by_batch givee a gantt chart with a time axis
     pub fn sort_by_batch(planning: &'a [Plan<'a>]) -> HashMap<String, Vec<&'a Plan<'a>>> {
         Plan::sort_by_xxxx(planning, |plan| plan.batch.id.to_string())
     }

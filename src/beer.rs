@@ -4,7 +4,7 @@ use crate::style::Style;
 #[derive(Debug, PartialEq)]
 pub struct Beer {
     pub name: String,
-    style: Style,
+    pub style: Style,
     pub recipy: Recipy,
 }
 
