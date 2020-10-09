@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::prelude::*;
-use z3::{ast, ast::Ast, Config, Context, FuncDecl, Optimize, SatResult, Sort};
+use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
@@ -192,7 +192,7 @@ impl<'a> Plan<'a> {
                     step_group,
                     S1F
                 );
-                all_endings.push(ast::Dynamic::from_ast(&resource_available));
+                all_endings.push(resource_available.clone());
                 // TODO: in the future, some batches may be actually be in production,
                 //       that would mean that need to skip some steps and set another
                 //       start time here.
@@ -299,38 +299,22 @@ impl<'a> Plan<'a> {
         solver: &'ctx Optimize,
         ctx: &'ctx Context,
         earliest_start: DateTime<Utc>,
-        all_endings: Vec<ast::Dynamic>,
+        all_endings: Vec<ast::Int>,
     ) {
         // 4) We optimize for the shortest time that all machines are in the resource_available state
         //    The variabls all_endings
+        // @TODO: we could limit the search space a bit, by setting the longest duration of each batch
+        //        This would probably improve the speed up a bit when there are less batches then fermentors.
+        //        And even then, there are not much batches, so there is not much to optimize for.
         let longest_start = earliest_start.timestamp();
-        let shortest_longest_duration_of_all_tasks = ast::Int::new_const(ctx, "Max time");
-        let parameter_sorts = all_endings
-            .iter()
-            .map(|_x| Sort::int(ctx))
-            .collect::<Vec<Sort>>();
-        let oparameter_sorts = parameter_sorts.iter().map(|x| x).collect::<Vec<&Sort>>();
-        let fmax = FuncDecl::new(
-            ctx,
-            "MaximizeFunction",
-            oparameter_sorts.as_slice(),
-            &Sort::int(ctx),
-        );
-        //@FIXME: implement fmax function
-        //     Constraint-hint: We can limit the search field, so that the optimize has less work.
-        solver.assert(
-            &shortest_longest_duration_of_all_tasks.ge(&ast::Int::from_i64(ctx, longest_start)),
-        );
+        let longest_duration_of_all_tasks = ast::Int::new_const(ctx, "Max time");
+        let mut block: ast::Int = ast::Int::from_i64(&ctx, longest_start);
+        for ending in all_endings {
+            block = ast::Bool::ite(&block.gt(&ending), &block, &ending)
+        }
         //     Constraint-optimizer
-        let oall_endings = all_endings
-            .iter()
-            .map(|x| x)
-            .collect::<Vec<&ast::Dynamic>>();
-        solver.assert(
-            &shortest_longest_duration_of_all_tasks
-                ._eq(&fmax.apply(oall_endings.as_slice()).as_int().unwrap()),
-        );
-        solver.minimize(&shortest_longest_duration_of_all_tasks);
+        solver.assert(&longest_duration_of_all_tasks._eq(&block));
+        solver.minimize(&longest_duration_of_all_tasks);
     }
 
     fn process_solution<'ctx>(
