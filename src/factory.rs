@@ -123,13 +123,14 @@ impl Factory {
                     let batch_count = model.eval(batch_count_int).unwrap().as_i64().unwrap();
                     let beer = self.beers.get(&name.to_string()).unwrap();
                     for i in 0..batch_count {
-                        let mut vol = system.volume();
+                        let (r#yield, _steps) = beer.recipy.get(&system).unwrap();
+                        let mut vol = r#yield.clone();
                         if i == batch_count - 1 {
                             if let Volume::Liter(want_liter) =
                                 wishlist.get(*name).unwrap().1.to_liter()
                             {
-                                if let Volume::Liter(batch_liter) = system.volume().to_liter() {
-                                    vol = Volume::Liter(want_liter - batch_liter * i as f32)
+                                if let Volume::Liter(yield_liter) = r#yield.to_liter() {
+                                    vol = Volume::Liter(want_liter - yield_liter * i as f32)
                                 }
                             }
                         }
