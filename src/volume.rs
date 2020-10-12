@@ -161,4 +161,12 @@ mod tests {
         assert_eq!(one.ge(&ten), false);
         assert_eq!(ten.ge(&ten), true);
     }
+
+    #[test]
+    fn test_volume_si() {
+        assert_eq!(
+            Volume::si_unit(&Volume::GallonUS(10.0)),
+            (0.0000037854118, 10.0)
+        );
+    }
 }
