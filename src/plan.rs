@@ -684,12 +684,12 @@ mod tests {
     use crate::batchneed;
     use crate::beer;
     use crate::equipment;
-    use crate::factory;
+    // use crate::factory;
     use crate::step_group;
     use crate::system;
 
     #[test]
-    fn test_plan_new() {
+    fn test_plan_mocks() {
         let beer = beer::mock::beer();
         let system = system::mock::bbl5();
         let equipment = equipment::mock::equipment();
@@ -705,14 +705,14 @@ mod tests {
         assert!(plan.start < plan.end);
     }
 
-    #[test]
-    fn test_plan_do_magic() {
-        let factory = factory::mock::factory();
-        let now: DateTime<Utc> = Utc::now();
-        let wishlist = HashMap::new();
-        // @FIXME: better test case: real beer in factory
-        let batches_needed = factory.calculate_batches(wishlist);
-        let _solution = Plan::plan(&factory, &batches_needed, now);
-        // @TODO: better tests
-    }
+    // #[test]
+    // fn test_plan_do_magic() {
+    //     let factory = factory::mock::factory();
+    //     let now: DateTime<Utc> = Utc::now();
+    //     let wishlist = HashMap::new();
+    //     // @FIXME: better test case: real beer in factory
+    //     let batches_needed = factory.calculate_batches(wishlist);
+    //     let _solution = Plan::plan(&factory, &batches_needed, now);
+    //     // @TODO: better tests
+    // }
 }
