@@ -1,5 +1,6 @@
 #[derive(Clone, Debug, PartialEq)]
 pub enum Volume {
+    BeerBarrel(f32),
     GallonUS(f32),
     GallonUSDry(f32),
     GallonImperial(f32),
@@ -7,6 +8,7 @@ pub enum Volume {
     Lb(f32), //CO2 weight unit
 }
 
+#[macro_export]
 macro_rules! convert_to {
     ($enumname: expr, $unit: expr) => {{
         let (in_factor, amount) = Volume::si_unit($unit);
@@ -18,6 +20,7 @@ macro_rules! convert_to {
 impl Volume {
     pub fn lookup(&self) -> String {
         match self {
+            Volume::BeerBarrel(x) => format!("{}BBL", x),
             Volume::GallonUS(x) => format!("{}G", x),
             Volume::GallonUSDry(x) => format!("{} US Dry Gallon", x),
             Volume::GallonImperial(x) => format!("{} Imperial Gallon", x),
@@ -28,11 +31,12 @@ impl Volume {
 
     pub fn si_unit(unit: &Volume) -> (f32, f32) {
         match unit {
-            &Volume::GallonUS(x) => (3.785411784 / 1_000_000.0, x),
-            &Volume::GallonUSDry(x) => (4.404_883_770_86 / 1_000_000.0, x),
-            &Volume::GallonImperial(x) => (4.546_09 / 1_000_000.0, x),
-            &Volume::Liter(x) => (1.0 / 1_000_000.0, x),
-            &Volume::Lb(_) => panic!("lb is a weigth, not a volume"),
+            &Volume::BeerBarrel(x) => (117.348 / 1_000.0, x),
+            &Volume::GallonUS(x) => (3.785411784 / 1_000.0, x),
+            &Volume::GallonUSDry(x) => (4.40488377086 / 1_000.0, x),
+            &Volume::GallonImperial(x) => (4.54609 / 1_000.0, x),
+            &Volume::Liter(x) => (1.0 / 1_000.0, x),
+            &Volume::Lb(_) => panic!("lb is a weight, not a volume"),
         }
     }
 
@@ -51,6 +55,8 @@ impl Volume {
     pub fn to_liter(&self) -> Volume {
         convert_to!(Volume::Liter, self)
     }
+
+    pub fn to_bbl(&self) -> Volume { convert_to!(Volume::BeerBarrel, self) }
 
     pub fn full_batches(&self, batch_size: &Volume) -> usize {
         if let Volume::Liter(need) = self.to_liter() {
@@ -108,20 +114,28 @@ pub mod mock {
     pub fn lb() -> Volume {
         Volume::Lb(12.2)
     }
+
+    pub fn bbl() -> Volume { Volume::BeerBarrel(7.0) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
 
+    #[test]
+    fn test_volume_convert_bbl() {
+        assert_eq!(mock::bbl().to_gallon_us(), Volume::GallonUS((217.00043)));
+        assert_eq!(mock::bbl().to_liter(), Volume::Liter(821.4359));
+    }
     #[test]
     fn test_volume_convert_liter_gallonus() {
         assert_eq!(mock::liter().to_liter(), Volume::Liter(12.2));
         assert_eq!(mock::gallon_us().to_gallon_us(), Volume::GallonUS(5.0));
-        assert_eq!(mock::gallon_us().to_liter(), Volume::Liter(18.92706));
+        assert_eq!(mock::gallon_us().to_liter(), Volume::Liter(18.927057));
         assert_eq!(
-            Volume::Liter(46.18202).to_gallon_us(),
-            Volume::GallonUS(12.199998)
+            Volume::Liter(46.182).to_gallon_us(),
+            Volume::GallonUS(12.199993)
         );
     }
 
@@ -166,7 +180,7 @@ mod tests {
     fn test_volume_si() {
         assert_eq!(
             Volume::si_unit(&Volume::GallonUS(10.0)),
-            (0.0000037854118, 10.0)
+            (0.0037854118, 10.0)
         );
     }
 }

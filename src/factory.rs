@@ -8,7 +8,7 @@ use crate::beer::Beer;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::step_group::StepGroup;
-use crate::system::System;
+use crate::batch_size::BatchSize;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
@@ -43,7 +43,7 @@ impl Factory {
             .equipments
             .values()
             .map(|e| e.system.clone())
-            .collect::<Vec<System>>();
+            .collect::<Vec<BatchSize>>();
         existing_systems.sort();
         existing_systems.dedup();
         let mut systems = HashMap::new();
@@ -157,8 +157,8 @@ impl Factory {
     pub fn calculate_bottleneck_step(
         &self,
         batches_needed: &HashMap<usize, BatchNeed>,
-    ) -> Vec<(System, StepGroup, Duration)> {
-        let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
+    ) -> Vec<(BatchSize, StepGroup, Duration)> {
+        let mut temp: HashMap<(BatchSize, StepGroup), Duration> = HashMap::new();
         for batch in batches_needed.values() {
             let (_volume, steps) = batch.beer.recipe.get(&batch.system).expect(&format!(
                 "Beer {} should have a recipe for system {:?}",
@@ -179,7 +179,7 @@ impl Factory {
             }
         }
         //sort, descending on usage
-        let mut temp_vec: Vec<(&(System, StepGroup), &Duration)> = temp.iter().collect();
+        let mut temp_vec: Vec<(&(BatchSize, StepGroup), &Duration)> = temp.iter().collect();
         temp_vec.sort_by(|a, b| b.1.cmp(a.1));
         temp_vec
             .iter()
@@ -191,10 +191,10 @@ impl Factory {
 
     pub fn calculate_bottleneck_equipment(
         &self,
-        acc_batches: &[(System, StepGroup, Duration)],
-    ) -> Vec<(System, EquipmentGroup, Duration)> {
+        acc_batches: &[(BatchSize, StepGroup, Duration)],
+    ) -> Vec<(BatchSize, EquipmentGroup, Duration)> {
         // @TODO merge this with calculate_bottleneck_step to save time on building hashmaps and sorting them into vectors
-        let mut temp: HashMap<(System, EquipmentGroup), Duration> = HashMap::new();
+        let mut temp: HashMap<(BatchSize, EquipmentGroup), Duration> = HashMap::new();
         for (system, step_group, duration) in acc_batches {
             let equipment_group = step_group.equipment_group();
             match temp.get_mut(&(system.clone(), equipment_group.clone())) {
@@ -205,7 +205,7 @@ impl Factory {
             };
         }
         // sort, descending on usage
-        let mut temp_vec: Vec<(&(System, EquipmentGroup), &Duration)> = temp.iter().collect();
+        let mut temp_vec: Vec<(&(BatchSize, EquipmentGroup), &Duration)> = temp.iter().collect();
         temp_vec.sort_by(|a, b| b.1.cmp(&a.1));
         temp_vec
             .iter()
@@ -217,7 +217,7 @@ impl Factory {
 
     pub fn list_suited_equipment(
         &self,
-        system: &System,
+        system: &BatchSize,
         equipment_group: &EquipmentGroup,
     ) -> Vec<&Equipment> {
         let mut out = Vec::new();
@@ -232,8 +232,8 @@ impl Factory {
 
     pub fn calculate_bottleneck(
         &self,
-        acc_equipment: &[(System, EquipmentGroup, Duration)],
-    ) -> Vec<(System, EquipmentGroup, Duration)> {
+        acc_equipment: &[(BatchSize, EquipmentGroup, Duration)],
+    ) -> Vec<(BatchSize, EquipmentGroup, Duration)> {
         let mut temp = HashMap::with_capacity(acc_equipment.len());
         for (system, equipment_group, duration) in acc_equipment {
             let suited = self.list_suited_equipment(system, equipment_group);
@@ -242,7 +242,7 @@ impl Factory {
             temp.insert((system.clone(), equipment_group.clone()), avg_duration);
         }
 
-        let mut temp_vec: Vec<(&(System, EquipmentGroup), &Duration)> = temp.iter().collect();
+        let mut temp_vec: Vec<(&(BatchSize, EquipmentGroup), &Duration)> = temp.iter().collect();
         temp_vec.sort_by(|a, b| b.1.cmp(&a.1));
 
         temp_vec
@@ -280,7 +280,7 @@ mod tests {
     use super::*;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::system;
+    use crate::batch_size;
     use crate::volume;
 
     #[test]
@@ -297,7 +297,7 @@ mod tests {
         let equipment_1 = equipment::mock::equipment();
         let equipment_2 = Equipment::new(
             "Foobar 2001".to_string(),
-            system::mock::bbl5(),
+            batch_size::mock::bbl5(),
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         );
@@ -307,14 +307,14 @@ mod tests {
             .insert(equipment_2.name.to_string(), equipment_2.clone());
         assert_eq!(factory.equipments.len(), 2);
         assert_eq!(
-            factory.list_suited_equipment(&System::G10, &EquipmentGroup::CO2Tank),
+            factory.list_suited_equipment(&BatchSize::G10, &EquipmentGroup::CO2Tank),
             Vec::<&Equipment>::new()
         );
         assert_eq!(
-            factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::CO2Tank),
+            factory.list_suited_equipment(&BatchSize::BBL5, &EquipmentGroup::CO2Tank),
             Vec::<&Equipment>::new()
         );
-        let suited = factory.list_suited_equipment(&System::BBL5, &EquipmentGroup::MashTun);
+        let suited = factory.list_suited_equipment(&BatchSize::BBL5, &EquipmentGroup::MashTun);
         assert!(
             (suited == vec![&equipment_1, &equipment_2])
                 || (suited == vec![&equipment_2, &equipment_1])

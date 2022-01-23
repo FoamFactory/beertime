@@ -1,13 +1,13 @@
 use std::str::FromStr;
 use crate::equipment_group::EquipmentGroup;
-use crate::system::System;
+use crate::batch_size::BatchSize;
 use crate::volume::Volume;
 use crate::config::EquipmentConfig;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
     pub name: String,
-    pub system: System,
+    pub system: BatchSize,
     pub equipment_group: EquipmentGroup,
     pub volume: Volume,
 }
@@ -15,7 +15,7 @@ pub struct Equipment {
 impl Equipment {
     pub fn new(
         name: String,
-        system: System,
+        system: BatchSize,
         equipment_group: EquipmentGroup,
         volume: Volume,
     ) -> Self {
@@ -51,7 +51,7 @@ impl std::convert::From<EquipmentConfig> for Equipment {
 
         Equipment::new(
             config.name,
-            System::G10,
+            BatchSize::G10,
             equipment_type,
             capacity_vol,
         )
@@ -62,13 +62,13 @@ impl std::convert::From<EquipmentConfig> for Equipment {
 pub mod mock {
     use super::*;
     use crate::equipment_group;
-    use crate::system;
+    use crate::batch_size;
     use crate::volume;
 
     pub fn equipment() -> Equipment {
         Equipment::new(
             "Foobar 2000".to_string(),
-            system::mock::bbl5(),
+            batch_size::mock::bbl5(),
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         )
@@ -79,14 +79,14 @@ pub mod mock {
 mod tests {
     use super::*;
     use crate::equipment_group;
-    use crate::system;
+    use crate::batch_size;
     use crate::volume;
 
     #[test]
     fn test_equimpment_new() {
         let equipment = mock::equipment();
         assert_eq!(&equipment.name, "Foobar 2000");
-        assert_eq!(equipment.system, system::mock::bbl5());
+        assert_eq!(equipment.system, batch_size::mock::bbl5());
         assert_eq!(equipment.equipment_group, equipment_group::mock::mash_tun());
         assert_eq!(equipment.volume, volume::mock::gallon_us());
     }

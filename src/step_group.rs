@@ -1,7 +1,7 @@
 use chrono::Duration;
 
 use crate::equipment_group::EquipmentGroup;
-use crate::system::System;
+use crate::batch_size::BatchSize;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum StepGroup {
@@ -47,14 +47,14 @@ impl StepGroup {
         }
     }
 
-    pub fn post_process_time(&self, system: &System) -> Duration {
+    pub fn post_process_time(&self, system: &BatchSize) -> Duration {
         // @TODO: this is all made up, get some more sensable magic numbers
         let factor = match system {
-            System::G5 | System::G10 => 1,
-            System::BBL5 => 2,
-            System::BBL7 => 5,
-            System::BBL10 => 10,
-            System::BBL15 => 20,
+            BatchSize::G5 | BatchSize::G10 => 1,
+            BatchSize::BBL5 => 2,
+            BatchSize::BBL7 => 5,
+            BatchSize::BBL10 => 10,
+            BatchSize::BBL15 => 20,
         };
         let dur = match self {
             StepGroup::Aging => Duration::minutes(2),
@@ -181,27 +181,27 @@ mod tests {
     #[test]
     fn test_stepgroup_post_process_time() {
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::G5),
+            StepGroup::Aging.post_process_time(&BatchSize::G5),
             Duration::minutes(2)
         );
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::G10),
+            StepGroup::Aging.post_process_time(&BatchSize::G10),
             Duration::minutes(2)
         );
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::BBL5),
+            StepGroup::Aging.post_process_time(&BatchSize::BBL5),
             Duration::minutes(4)
         );
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::BBL7),
+            StepGroup::Aging.post_process_time(&BatchSize::BBL7),
             Duration::minutes(10)
         );
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::BBL10),
+            StepGroup::Aging.post_process_time(&BatchSize::BBL10),
             Duration::minutes(20)
         );
         assert_eq!(
-            StepGroup::Aging.post_process_time(&System::BBL15),
+            StepGroup::Aging.post_process_time(&BatchSize::BBL15),
             Duration::minutes(40)
         );
     }
