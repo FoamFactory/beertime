@@ -11,9 +11,9 @@ pub struct Beer {
 impl Beer {
     pub fn new(name: &str, style: Style, recipe: Recipe) -> Self {
         let beer_type = style.r#type();
-        let needs_rest = beer_type.needs_diactyl_rest();
+        let needs_rest = beer_type.needs_diacetyl_rest();
         for (_volume, steps) in recipe.map.values() {
-            assert_eq!(steps.needs_diactyl_rest(), needs_rest);
+            assert_eq!(steps.needs_diacetyl_rest(), needs_rest);
         }
 
         Self {

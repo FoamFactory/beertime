@@ -7,7 +7,7 @@ use crate::system::System;
 pub enum StepGroup {
     Brewing,
     PrimaryFermentation,
-    DiactylRest,
+    DiacetylRest,
     SecondaryFermentation,
     Aging,
     Carbonation,
@@ -19,7 +19,7 @@ impl StepGroup {
             StepGroup::Aging => "Aging",
             StepGroup::Brewing => "Brewing",
             StepGroup::Carbonation => "Carbonation",
-            StepGroup::DiactylRest => "Diactyl Rest",
+            StepGroup::DiacetylRest => "Diacetyl Rest",
             StepGroup::PrimaryFermentation => "Primary Fermentation",
             StepGroup::SecondaryFermentation => "Secondary Fermentation",
         }
@@ -28,7 +28,7 @@ impl StepGroup {
         vec![
             StepGroup::Brewing,
             StepGroup::PrimaryFermentation,
-            StepGroup::DiactylRest,
+            StepGroup::DiacetylRest,
             StepGroup::SecondaryFermentation,
             StepGroup::Aging,
             StepGroup::Carbonation,
@@ -41,7 +41,7 @@ impl StepGroup {
             //StepGroup::Brewing => unimplemented!(), //EquipmentGroup::HotLiquorTank EquipmentGroup::MashTun,
             StepGroup::Brewing => EquipmentGroup::MashTun,
             StepGroup::Carbonation => EquipmentGroup::CO2Tank,
-            StepGroup::DiactylRest => EquipmentGroup::Fermentor,
+            StepGroup::DiacetylRest => EquipmentGroup::Fermentor,
             StepGroup::PrimaryFermentation => EquipmentGroup::Fermentor,
             StepGroup::SecondaryFermentation => EquipmentGroup::Fermentor,
         }
@@ -60,7 +60,7 @@ impl StepGroup {
             StepGroup::Aging => Duration::minutes(2),
             StepGroup::Brewing => Duration::minutes(5),
             StepGroup::Carbonation => Duration::minutes(1),
-            StepGroup::DiactylRest
+            StepGroup::DiacetylRest
             | StepGroup::PrimaryFermentation
             | StepGroup::SecondaryFermentation => Duration::minutes(10),
         };
@@ -76,7 +76,7 @@ impl std::str::FromStr for StepGroup {
             "Aging" => Ok(StepGroup::Aging),
             "Brewing" => Ok(StepGroup::Brewing),
             "Carbonation" => Ok(StepGroup::Carbonation),
-            "Diactyl Rest" => Ok(StepGroup::DiactylRest),
+            "Diacetyl Rest" => Ok(StepGroup::DiacetylRest),
             "Primary Fermentation" => Ok(StepGroup::PrimaryFermentation),
             "Secondary Fermentation" => Ok(StepGroup::SecondaryFermentation),
             _ => Err(()),
@@ -99,8 +99,8 @@ pub mod mock {
         StepGroup::Carbonation
     }
 
-    pub fn diactyl_rest() -> StepGroup {
-        StepGroup::DiactylRest
+    pub fn diacetyl_rest() -> StepGroup {
+        StepGroup::DiacetylRest
     }
 
     pub fn primary_fermentation() -> StepGroup {
@@ -121,7 +121,7 @@ mod tests {
         assert_eq!(StepGroup::Aging.lookup(), "Aging");
         assert_eq!(StepGroup::Brewing.lookup(), "Brewing");
         assert_eq!(StepGroup::Carbonation.lookup(), "Carbonation");
-        assert_eq!(StepGroup::DiactylRest.lookup(), "Diactyl Rest");
+        assert_eq!(StepGroup::DiacetylRest.lookup(), "Diacetyl Rest");
         assert_eq!(
             StepGroup::PrimaryFermentation.lookup(),
             "Primary Fermentation"
@@ -144,7 +144,7 @@ mod tests {
             EquipmentGroup::CO2Tank
         );
         assert_eq!(
-            StepGroup::DiactylRest.equipment_group(),
+            StepGroup::DiacetylRest.equipment_group(),
             EquipmentGroup::Fermentor
         );
         assert_eq!(
@@ -162,7 +162,7 @@ mod tests {
         assert_eq!("Aging".parse(), Ok(StepGroup::Aging));
         assert_eq!("Brewing".parse(), Ok(StepGroup::Brewing));
         assert_eq!("Carbonation".parse(), Ok(StepGroup::Carbonation));
-        assert_eq!("Diactyl Rest".parse(), Ok(StepGroup::DiactylRest));
+        assert_eq!("Diacetyl Rest".parse(), Ok(StepGroup::DiacetylRest));
         assert_eq!(
             "Primary Fermentation".parse(),
             Ok(StepGroup::PrimaryFermentation)

@@ -22,9 +22,9 @@ impl Steps {
     pub fn new(
         brewing: Option<Interval>,
         primary: Option<Interval>,
-        diactyl: Option<Interval>,
+        diacetyl: Option<Interval>,
         secondary: Option<Interval>,
-        aginig: Option<Interval>,
+        aging: Option<Interval>,
         carbonation: Option<Interval>,
     ) -> Self {
         let mut steps = Self {
@@ -32,9 +32,9 @@ impl Steps {
         };
         step_needed!(steps.map, brewing, StepGroup::Brewing);
         step_needed!(steps.map, primary, StepGroup::PrimaryFermentation);
-        step_needed!(steps.map, diactyl, StepGroup::DiactylRest);
+        step_needed!(steps.map, diacetyl, StepGroup::DiacetylRest);
         step_needed!(steps.map, secondary, StepGroup::SecondaryFermentation);
-        step_needed!(steps.map, aginig, StepGroup::Aging);
+        step_needed!(steps.map, aging, StepGroup::Aging);
         step_needed!(steps.map, carbonation, StepGroup::Carbonation);
 
         steps
@@ -44,8 +44,8 @@ impl Steps {
         self.map.get(key)
     }
 
-    pub fn needs_diactyl_rest(&self) -> bool {
-        match self.map.get(&StepGroup::DiactylRest) {
+    pub fn needs_diacetyl_rest(&self) -> bool {
+        match self.map.get(&StepGroup::DiacetylRest) {
             None => false,
             Some(_x) => true,
         }
@@ -80,7 +80,7 @@ impl<'a> StepIterator<'a> {
             order: vec![
                 StepGroup::Brewing,
                 StepGroup::PrimaryFermentation,
-                StepGroup::DiactylRest,
+                StepGroup::DiacetylRest,
                 StepGroup::SecondaryFermentation,
                 StepGroup::Aging,
                 StepGroup::Carbonation,
@@ -143,6 +143,6 @@ mod tests {
             steps.range(),
             (Duration::seconds(18991800), Duration::seconds(21011400))
         );
-        assert_eq!(steps.needs_diactyl_rest(), false);
+        assert_eq!(steps.needs_diacetyl_rest(), false);
     }
 }
