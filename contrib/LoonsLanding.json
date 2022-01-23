@@ -1,0 +1,61 @@
+{
+  "factory": {
+    "name": "Loons Landing Brewery",
+    "equipment": [
+      {
+        "id": 1,
+        "name": "FV-001",
+        "equipment_type": "fermentor",
+        "capacity": "5g"
+      },
+      {
+        "id": 2,
+        "name": "Big Bertha",
+        "equipment_type": "fermentor",
+        "capacity": "14g"
+      },
+      {
+        "id": 3,
+        "name": "Large Kettle",
+        "equipment_type": "kettle",
+        "capacity": "15g"
+      },
+      {
+        "id": 4,
+        "name": "Large Mash Tun",
+        "equipment_type": "mashtun",
+        "capacity": "15g"
+      },
+      {
+        "id": 5,
+        "name": "Large Lauter Tun",
+        "equipment_type": "lautertun",
+        "capacity": "15g"
+      },
+      {
+        "id": 6,
+        "name": "Keg 001",
+        "equipment_type": "keg",
+        "capacity": "5g"
+      },
+      {
+        "id": 7,
+        "name": "Keg 002",
+        "equipment_type": "keg",
+        "capacity": "5g"
+      },
+      {
+        "id": 8,
+        "name": "Scott's Kegerator",
+        "equipment_type": "kegerator",
+        "capacity": "2k"
+      },
+      {
+        "id": 9,
+        "name": "Scott's CO2 Tank",
+        "equipment_type": "gastank",
+        "capacity": "5g"
+      }
+    ]
+  }
+}

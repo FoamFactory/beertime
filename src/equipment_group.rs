@@ -1,6 +1,7 @@
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum EquipmentGroup {
     MashTun,
+    LauterTun,
     HotLiquorTank,
     Kettle,
     Fermentor,
@@ -12,6 +13,7 @@ impl EquipmentGroup {
     pub fn lookup(&self) -> &'static str {
         match self {
             EquipmentGroup::MashTun => "Mash Tun",
+            EquipmentGroup::LauterTun => "Lauter Tun",
             EquipmentGroup::HotLiquorTank => "Hot Liqoor Tank",
             EquipmentGroup::Kettle => "Kettle",
             EquipmentGroup::Fermentor => "Fermentor",
@@ -27,11 +29,20 @@ impl std::str::FromStr for EquipmentGroup {
     fn from_str(s: &str) -> Result<EquipmentGroup, ()> {
         match s {
             "Mash Tun" => Ok(EquipmentGroup::MashTun),
-            "Hot Liqoor Tank" => Ok(EquipmentGroup::HotLiquorTank),
+            "mashtun" => Ok(EquipmentGroup::MashTun),
+            "Lauter Tun" => Ok(EquipmentGroup::LauterTun),
+            "lautertun" => Ok(EquipmentGroup::LauterTun),
+            "Hot Liquor Tank" => Ok(EquipmentGroup::HotLiquorTank),
+            "hlt" => Ok(EquipmentGroup::HotLiquorTank),
             "Kettle" => Ok(EquipmentGroup::Kettle),
+            "kettle" => Ok(EquipmentGroup::Kettle),
             "Fermentor" => Ok(EquipmentGroup::Fermentor),
+            "fermentor" => Ok(EquipmentGroup::Fermentor),
             "CO2 Tank" => Ok(EquipmentGroup::CO2Tank),
+            "gastank" => Ok(EquipmentGroup::CO2Tank),
             "Keg" => Ok(EquipmentGroup::Keg),
+            "Keg" => Ok(EquipmentGroup::Keg),
+
             _ => Err(()),
         }
     }
@@ -83,7 +94,8 @@ mod tests {
     #[test]
     fn test_equipmentgroup_parse() {
         assert_eq!("Mash Tun".parse(), Ok(EquipmentGroup::MashTun));
-        assert_eq!("Hot Liqoor Tank".parse(), Ok(EquipmentGroup::HotLiquorTank));
+        assert_eq!("Lauter Tun".parse(), Ok(EquipmentGroup::LauterTun));
+        assert_eq!("Hot Liquor Tank".parse(), Ok(EquipmentGroup::HotLiquorTank));
         assert_eq!("Kettle".parse(), Ok(EquipmentGroup::Kettle));
         assert_eq!("Fermentor".parse(), Ok(EquipmentGroup::Fermentor));
         assert_eq!("CO2 Tank".parse(), Ok(EquipmentGroup::CO2Tank));

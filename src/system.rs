@@ -1,5 +1,6 @@
 use crate::volume::Volume;
 
+// XXX_jwir3: I _think_ this refers to the batch size of the system, but I'm not 100% sure.
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum System {
     G5,

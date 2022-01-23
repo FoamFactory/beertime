@@ -1,13 +1,15 @@
+use std::str::FromStr;
 use crate::equipment_group::EquipmentGroup;
 use crate::system::System;
 use crate::volume::Volume;
+use crate::config::EquipmentConfig;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
     pub name: String,
     pub system: System,
     pub equipment_group: EquipmentGroup,
-    volume: Volume,
+    pub volume: Volume,
 }
 
 impl Equipment {
@@ -32,6 +34,27 @@ impl Equipment {
             }
         }
         panic!("should not happen");
+    }
+}
+
+impl std::convert::From<EquipmentConfig> for Equipment {
+    fn from(config: EquipmentConfig) -> Self {
+        let equipment_type = match EquipmentGroup::from_str(&config.equipment_type) {
+            Ok(x) => x,
+            Err(_e) => panic!("Unable to convert from configuration string to equipment group"),
+        };
+
+        let capacity_vol = match Volume::from_str(&config.capacity) {
+            Ok(x) => x,
+            Err(_e) => panic!("{} does not appear to be a valid volume for capacity", &config.capacity),
+        };
+
+        Equipment::new(
+            config.name,
+            System::G10,
+            equipment_type,
+            capacity_vol,
+        )
     }
 }
 

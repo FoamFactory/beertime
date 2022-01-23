@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
+use clap::Parser;
+
 use beertime::beer::Beer;
+use beertime::config::Config;
 use beertime::equipment::Equipment;
 use beertime::equipment_group::EquipmentGroup;
 use beertime::factory::Factory;
@@ -280,22 +283,37 @@ fn load(factory: &mut Factory) {
     load_recipies(factory);
 }
 
+#[derive(Parser, Debug)]
+#[clap(version, about, long_about = None)]
+struct Args {
+    /// File name of the factory definition toml file
+    #[clap(short)]
+    factory_definition_file: String,
+}
+
 fn main() {
-    let mut factory = Factory::new("Loons Landing");
-    load(&mut factory);
-    let wishlist = wishlist(&factory);
-    let batches_needed = factory.calculate_batches(wishlist);
-    assert_eq!(batches_needed.len(), 19);
-    let most_needed_steps = factory.calculate_bottleneck_step(&batches_needed);
-    let most_needed_equipment =
-        factory.calculate_bottleneck_equipment(most_needed_steps.as_slice());
-    let _most_bottlenecked_equipment =
-        factory.calculate_bottleneck(most_needed_equipment.as_slice());
-    //println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
-    let now = chrono::offset::Utc::now();
-    let solution = Plan::plan(&factory, &batches_needed, now);
-    let pla = Plan::pla_basic(solution.as_slice(), Plan::sort_by_batch);
-    println!("{}", pla);
+    // As input, we need a factory definition .json file.
+    let args = Args::parse();
+    let def_file_path = args.factory_definition_file;
+    match Config::read_config(def_file_path) {
+        Ok(conf) => println!("Factory Name: {}", conf.factory.name),
+        _ => panic!("Unable to read configuration file. Does it exist and in proper format?")
+    }
+    // let mut factory = Factory::new("Loons Landing");
+    // load(&mut factory);
+    // let wishlist = wishlist(&factory);
+    // let batches_needed = factory.calculate_batches(wishlist);
+    // assert_eq!(batches_needed.len(), 19);
+    // let most_needed_steps = factory.calculate_bottleneck_step(&batches_needed);
+    // let most_needed_equipment =
+    //     factory.calculate_bottleneck_equipment(most_needed_steps.as_slice());
+    // let _most_bottlenecked_equipment =
+    //     factory.calculate_bottleneck(most_needed_equipment.as_slice());
+    // //println!("\nbottleneck : {:?}", most_bottlenecked_equipment);
+    // let now = chrono::offset::Utc::now();
+    // let solution = Plan::plan(&factory, &batches_needed, now);
+    // let pla = Plan::pla_basic(solution.as_slice(), Plan::sort_by_batch);
+    // println!("{}", pla);
     // @TODO: Generate plan list
     // @TODO: calculate oee's
 }
