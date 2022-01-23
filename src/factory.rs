@@ -123,7 +123,7 @@ impl Factory {
                     let batch_count = model.eval(batch_count_int).unwrap().as_i64().unwrap();
                     let beer = self.beers.get(&name.to_string()).unwrap();
                     for i in 0..batch_count {
-                        let (r#yield, _steps) = beer.recipy.get(&system).unwrap();
+                        let (r#yield, _steps) = beer.recipe.get(&system).unwrap();
                         let mut vol = r#yield.clone();
                         if i == batch_count - 1 {
                             if let Volume::Liter(want_liter) =
@@ -160,8 +160,8 @@ impl Factory {
     ) -> Vec<(System, StepGroup, Duration)> {
         let mut temp: HashMap<(System, StepGroup), Duration> = HashMap::new();
         for batch in batches_needed.values() {
-            let (_volume, steps) = batch.beer.recipy.get(&batch.system).expect(&format!(
-                "Beer {} should have a recipy for system {:?}",
+            let (_volume, steps) = batch.beer.recipe.get(&batch.system).expect(&format!(
+                "Beer {} should have a recipe for system {:?}",
                 batch.beer.name, batch.system
             ));
             for (step_group, interval) in steps.iter() {

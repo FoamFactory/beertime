@@ -5,11 +5,11 @@ use crate::system::System;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
-pub struct Recipy {
+pub struct Recipe {
     pub map: HashMap<System, (Volume, Steps)>,
 }
 
-impl Recipy {
+impl Recipe {
     pub fn blank() -> Self {
         Self {
             map: HashMap::new(),
@@ -18,7 +18,7 @@ impl Recipy {
 
     pub fn new(system: System, r#yield: Volume, steps: Steps) -> Self {
         assert!(system.volume().ge(&r#yield));
-        let mut recipy = Recipy::blank();
+        let mut recipy = Recipe::blank();
         recipy.map.insert(system, (r#yield, steps));
 
         recipy
@@ -41,8 +41,8 @@ pub mod mock {
     use crate::system;
     use crate::volume;
 
-    pub fn recipy() -> Recipy {
-        Recipy::new(
+    pub fn Recipe() -> Recipe {
+        Recipe::new(
             system::mock::g5(),
             volume::mock::gallon_us(),
             steps::mock::steps(),
@@ -58,10 +58,10 @@ mod tests {
     use crate::volume;
 
     #[test]
-    fn test_recipy_new() {
-        let recipy = mock::recipy();
+    fn test_recipe_new() {
+        let recipe = mock::Recipe();
         assert_eq!(
-            recipy.get(&system::mock::g5()),
+            recipe.get(&system::mock::g5()),
             Some(&(volume::mock::gallon_us(), steps::mock::steps()))
         );
     }

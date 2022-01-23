@@ -9,7 +9,7 @@ use beertime::equipment_group::EquipmentGroup;
 use beertime::factory::Factory;
 use beertime::interval::Interval;
 use beertime::plan::Plan;
-use beertime::recipy::Recipy;
+use beertime::recipe::Recipe;
 use beertime::steps::Steps;
 use beertime::style::Style;
 use beertime::system::System;
@@ -70,7 +70,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Dobroy Nochi",
             Style::ImperialStout,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(5.0),
                 Steps::new(
@@ -86,7 +86,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Damned Squirrel",
             Style::BrownAle,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -102,7 +102,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "The Patriot",
             Style::AmberLager,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -118,7 +118,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Kung Fu Kicker",
             Style::SpecialtyStout,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(5.0),
                 Steps::new(
@@ -134,7 +134,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Anti-Scurvy Elixir",
             Style::IPA,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -150,7 +150,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Autumn's Early Arrival Blonde",
             Style::BlondeAle,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -166,7 +166,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Blues Don't Bother Me",
             Style::FruitBeer,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -182,7 +182,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "36th St.",
             Style::SmokedAle,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -198,7 +198,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Ironclad",
             Style::CaliforniaCommon,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -214,7 +214,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Golden Ticket",
             Style::Kellerbier,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -230,7 +230,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Bier",
             Style::Pilsner,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
@@ -246,7 +246,7 @@ fn load_recipies(factory: &mut Factory) {
         Beer::new(
             "Red Sunset",
             Style::IrishRedAle,
-            Recipy::new(
+            Recipe::new(
                 System::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(

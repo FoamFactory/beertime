@@ -1,25 +1,25 @@
-use crate::recipy::Recipy;
+use crate::recipe::Recipe;
 use crate::style::Style;
 
 #[derive(Debug, PartialEq)]
 pub struct Beer {
     pub name: String,
     pub style: Style,
-    pub recipy: Recipy,
+    pub recipe: Recipe,
 }
 
 impl Beer {
-    pub fn new(name: &str, style: Style, recipy: Recipy) -> Self {
+    pub fn new(name: &str, style: Style, recipe: Recipe) -> Self {
         let beer_type = style.r#type();
         let needs_rest = beer_type.needs_diactyl_rest();
-        for (_volume, steps) in recipy.map.values() {
+        for (_volume, steps) in recipe.map.values() {
             assert_eq!(steps.needs_diactyl_rest(), needs_rest);
         }
 
         Self {
             name: name.to_string(),
             style,
-            recipy,
+            recipe,
         }
     }
 }
@@ -27,14 +27,14 @@ impl Beer {
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    use crate::recipy;
+    use crate::recipe;
     use crate::style;
 
     pub fn beer() -> Beer {
         Beer::new(
             "foobeer 2000",
             style::mock::blonde_ale(),
-            recipy::mock::recipy(),
+            recipe::mock::Recipe(),
         )
     }
 }
@@ -42,7 +42,7 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::recipy;
+    use crate::recipe;
     use crate::style;
 
     #[test]
@@ -50,6 +50,6 @@ mod tests {
         let beer = mock::beer();
         assert_eq!(&beer.name, "foobeer 2000");
         assert_eq!(beer.style, style::mock::blonde_ale());
-        assert_eq!(beer.recipy, recipy::mock::recipy());
+        assert_eq!(beer.recipe, recipe::mock::Recipe());
     }
 }

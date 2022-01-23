@@ -23,7 +23,7 @@ impl<'a> BatchNeed<'a> {
     }
 
     pub fn steps(&self) -> Vec<(StepGroup, Interval)> {
-        if let Some((max_volume, steps)) = self.beer.recipy.get(&self.system) {
+        if let Some((max_volume, steps)) = self.beer.recipe.get(&self.system) {
             assert!(self.volume.ge(max_volume));
             return steps.iter().collect();
         }
