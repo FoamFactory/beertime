@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
+use crate::capacity::Capacity;
 
 #[derive(Serialize, Deserialize)]
 struct Person {
@@ -26,7 +27,9 @@ impl Config {
 #[derive(serde::Deserialize)]
 pub struct FactoryConfig {
     pub name: String,
-    pub equipment: Vec<EquipmentConfig>
+    pub equipment: Vec<EquipmentConfig>,
+    pub recipes: Vec<RecipeConfig>,
+    pub capacity: String,
 }
 
 #[derive(serde::Deserialize)]
@@ -37,11 +40,20 @@ pub struct EquipmentConfig {
     pub capacity: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct RecipeConfig {
+    pub name: String,
+    pub batch_size: String,
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::beer::Beer;
     use crate::equipment::Equipment;
     use crate::equipment_group::EquipmentGroup;
+    use crate::recipe::Recipe;
     use crate::volume::Volume;
+    use crate::volume::Volume::GallonUS;
     use super::*;
 
     #[test]
@@ -54,12 +66,19 @@ mod tests {
         assert_eq!(9, config.factory.equipment.len());
 
         // Check to make sure that we have at least one fermentor named "Big Bertha"
-        for equip_config in config.factory.equipment {
+        for equip_config in &config.factory.equipment {
             if equip_config.name == "Big Bertha" {
                 let equipment = Equipment::from(equip_config);
                 assert_eq!(equipment.name, "Big Bertha");
                 assert_eq!(equipment.volume, Volume::GallonUS(14.0));
                 assert!(equipment.can_hold(&Volume::GallonUS(12.0)));
+            }
+        }
+
+        // Check to make sure there is at least one recipe called "Damned Squirrel, Mk. II"
+        for recipe_config in &config.factory.recipes {
+            if recipe_config.name == "Damned Squirrel Mk. II" {
+                let beer = Beer::from((&config.factory, recipe_config));
             }
         }
     }

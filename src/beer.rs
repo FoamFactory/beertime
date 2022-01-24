@@ -1,4 +1,6 @@
+use crate::config::{FactoryConfig, RecipeConfig};
 use crate::recipe::Recipe;
+use crate::style;
 use crate::style::Style;
 
 #[derive(Debug, PartialEq)]
@@ -9,7 +11,7 @@ pub struct Beer {
 }
 
 impl Beer {
-    pub fn new(name: &str, style: Style, recipe: Recipe) -> Self {
+    pub fn new(name: String, style: Style, recipe: Recipe) -> Self {
         let beer_type = style.r#type();
         let needs_rest = beer_type.needs_diacetyl_rest();
         for (_volume, steps) in recipe.map.values() {
@@ -17,7 +19,7 @@ impl Beer {
         }
 
         Self {
-            name: name.to_string(),
+            name,
             style,
             recipe,
         }
@@ -32,9 +34,21 @@ pub mod mock {
 
     pub fn beer() -> Beer {
         Beer::new(
-            "foobeer 2000",
+            "foobeer 2000".to_string(),
             style::mock::blonde_ale(),
             recipe::mock::Recipe(),
+        )
+    }
+}
+
+impl From<(&FactoryConfig, &RecipeConfig)> for Beer {
+    fn from(config: (&FactoryConfig, &RecipeConfig)) -> Self {
+        let (factory_config, recipe_config) = config;
+        let cloned_str = String::from(&recipe_config.name);
+        Beer::new(
+            cloned_str,
+            Style::BlondeAle,
+            Recipe::from((factory_config, recipe_config))
         )
     }
 }

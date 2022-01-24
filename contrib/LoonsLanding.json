@@ -1,6 +1,7 @@
 {
   "factory": {
     "name": "Loons Landing Brewery",
+    "capacity": "15g",
     "equipment": [
       {
         "id": 1,
@@ -55,6 +56,30 @@
         "name": "Scott's CO2 Tank",
         "equipment_type": "gastank",
         "capacity": "5g"
+      }
+    ],
+    "recipes": [
+      {
+        "name": "Damned Squirrel Mk. II",
+        "batch_size": "10g",
+        "phases": [
+          {
+            "name": "brewing",
+            "duration": "1d"
+          },
+          {
+            "name": "primary",
+            "duration": "33d"
+          },
+          {
+            "name": "secondary",
+            "duration": "64d"
+          },
+          {
+            "name": "carbonation",
+            "duration": "2d"
+          }
+        ]
       }
     ]
   }

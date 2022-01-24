@@ -1,19 +1,19 @@
 use crate::beer::Beer;
 use crate::interval::Interval;
 use crate::step_group::StepGroup;
-use crate::batch_size::BatchSize;
+use crate::capacity::Capacity;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
 pub struct BatchNeed<'a> {
     pub id: usize,
     pub beer: &'a Beer,
-    pub system: BatchSize,
+    pub system: Capacity,
     pub volume: Volume,
 }
 
 impl<'a> BatchNeed<'a> {
-    pub fn new(id: usize, beer: &'a Beer, system: BatchSize, volume: Volume) -> Self {
+    pub fn new(id: usize, beer: &'a Beer, system: Capacity, volume: Volume) -> Self {
         Self {
             id,
             beer,
@@ -36,7 +36,7 @@ pub mod mock {
     use super::*;
     use crate::volume;
 
-    pub fn batchneed<'a>(beer: &'a Beer, system: BatchSize) -> BatchNeed<'a> {
+    pub fn batchneed<'a>(beer: &'a Beer, system: Capacity) -> BatchNeed<'a> {
         BatchNeed::new(1, beer, system, volume::mock::gallon_us())
     }
 }
@@ -45,13 +45,13 @@ pub mod mock {
 mod tests {
     use super::*;
     use crate::beer;
-    use crate::batch_size;
+    use crate::capacity;
     use crate::volume;
 
     #[test]
     fn test_batchneed_new() {
         let beer = beer::mock::beer();
-        let system = batch_size::mock::bbl5();
+        let system = capacity::mock::bbl5();
         let batchneed = mock::batchneed(&beer, system.clone());
         assert_eq!(batchneed.id, 1);
         assert_eq!(batchneed.beer, &beer);

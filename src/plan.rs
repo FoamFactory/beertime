@@ -9,7 +9,7 @@ use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::factory::Factory;
 use crate::step_group::StepGroup;
-use crate::batch_size::BatchSize;
+use crate::capacity::Capacity;
 
 /*
 Premium customers coin insertion slot
@@ -103,7 +103,7 @@ impl<'a> Plan<'a> {
         let mut z3_step_machine = HashMap::with_capacity(batches_needed.len() * 6);
         let mut all_endings = Vec::new();
         let step_groups = StepGroup::all();
-        let systems = BatchSize::all();
+        let systems = Capacity::all();
 
         let mut z3_machines = HashMap::with_capacity(step_groups.len());
         for step_group in step_groups {
@@ -363,7 +363,7 @@ impl<'a> Plan<'a> {
         factory: &'a Factory,
         batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
         solver: Optimize<'ctx>,
-        z3_machines: HashMap<(EquipmentGroup, BatchSize), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
+        z3_machines: HashMap<(EquipmentGroup, Capacity), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
         z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
         z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
         all_endings: &[ast::Int<'ctx>],
@@ -686,12 +686,12 @@ mod tests {
     use crate::equipment;
     // use crate::factory;
     use crate::step_group;
-    use crate::batch_size;
+    use crate::capacity;
 
     #[test]
     fn test_plan_mocks() {
         let beer = beer::mock::beer();
-        let system = batch_size::mock::bbl5();
+        let system = capacity::mock::bbl5();
         let equipment = equipment::mock::equipment();
         let batchneed = batchneed::mock::batchneed(&beer, system.clone());
         let step_group = step_group::mock::brewing();

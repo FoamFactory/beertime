@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Volume {
     BeerBarrel(f32),
@@ -15,6 +17,12 @@ macro_rules! convert_to {
         let (out_factor, _) = Volume::si_unit(&$enumname(0.0));
         $enumname(in_factor / out_factor * amount)
     }};
+}
+
+impl Display for Volume {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.lookup())
+    }
 }
 
 impl Volume {

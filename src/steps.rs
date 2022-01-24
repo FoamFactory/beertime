@@ -5,6 +5,13 @@ use std::collections::HashMap;
 use crate::interval::Interval;
 use crate::step_group::StepGroup;
 
+/**
+ * A data structure specifying the steps/phases needed for a particular beer recipe.
+ *
+ * There are 6 major steps to a brew process: Brewing (also called 'Brew Day'), Primary Fermentation,
+ * Diacetyl Rest (optional), Secondary Fermentation, Aging, and Carbonation. Each of these, if
+ * present, requires some non-zero amount of time (an interval).
+ */
 #[derive(Debug, PartialEq)]
 pub struct Steps {
     map: HashMap<StepGroup, Interval>,

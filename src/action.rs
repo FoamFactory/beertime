@@ -49,7 +49,7 @@ mod tests {
     use super::*;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::batch_size;
+    use crate::capacity;
     use crate::volume;
 
     #[test]
@@ -70,7 +70,7 @@ mod tests {
 
         let equipment_2 = Equipment::new(
             "Foobar 2001".to_string(),
-            batch_size::mock::bbl5(),
+            capacity::mock::bbl5(),
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         );
@@ -95,7 +95,7 @@ mod tests {
 
         let equipment_2 = Equipment::new(
             "Foobar 2001".to_string(),
-            batch_size::mock::bbl5(),
+            capacity::mock::bbl5(),
             equipment_group::mock::mash_tun(),
             volume::mock::gallon_us(),
         );

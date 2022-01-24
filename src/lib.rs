@@ -11,7 +11,7 @@ pub mod recipe;
 pub mod step_group;
 pub mod steps;
 pub mod style;
-pub mod batch_size;
+pub mod capacity;
 pub mod r#type;
 pub mod volume;
 pub mod work;

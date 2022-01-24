@@ -12,26 +12,26 @@ use beertime::plan::Plan;
 use beertime::recipe::Recipe;
 use beertime::steps::Steps;
 use beertime::style::Style;
-use beertime::batch_size::BatchSize;
+use beertime::capacity::Capacity;
 use beertime::volume::Volume;
 
 fn load_equipment(factory: &mut Factory) {
     let mut eqs = vec![
         Equipment::new(
             "Mash Tun 15G G10".to_string(),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::MashTun,
             Volume::GallonUS(15.0),
         ),
         Equipment::new(
             "Hot Liquor Tank 15G G10".to_string(),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::HotLiquorTank,
             Volume::GallonUS(15.0),
         ),
         Equipment::new(
             "Kettle 15G G10".to_string(),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::Kettle,
             Volume::GallonUS(15.0),
         ),
@@ -39,7 +39,7 @@ fn load_equipment(factory: &mut Factory) {
     for i in 0..7 {
         eqs.push(Equipment::new(
             format!("Fermentor 15G G10 {}", i + 1),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::Fermentor,
             Volume::GallonUS(15.0),
         ));
@@ -47,7 +47,7 @@ fn load_equipment(factory: &mut Factory) {
     for i in 0..2 {
         eqs.push(Equipment::new(
             format!("CO2 Tank 5Lb G10 {}", i + 1),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::CO2Tank,
             Volume::Lb(5.0),
         ));
@@ -55,7 +55,7 @@ fn load_equipment(factory: &mut Factory) {
     for i in 0..14 {
         eqs.push(Equipment::new(
             format!("Keg 5G {}", i + 1),
-            BatchSize::G10,
+            Capacity::G10,
             EquipmentGroup::Keg,
             Volume::GallonUS(5.0),
         ));
@@ -68,10 +68,10 @@ fn load_equipment(factory: &mut Factory) {
 fn load_recipies(factory: &mut Factory) {
     let beers = vec![
         Beer::new(
-            "Dobroy Nochi",
+            "Dobroy Nochi".to_string(),
             Style::ImperialStout,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(5.0),
                 Steps::new(
                     Some(Interval::Hours(12)),
@@ -84,10 +84,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Damned Squirrel",
+            "Damned Squirrel".to_string(),
             Style::BrownAle,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -100,10 +100,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "The Patriot",
+            "The Patriot".to_string(),
             Style::AmberLager,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -116,10 +116,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Kung Fu Kicker",
+            "Kung Fu Kicker".to_string(),
             Style::SpecialtyStout,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(5.0),
                 Steps::new(
                     Some(Interval::Hours(12)),
@@ -132,10 +132,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Anti-Scurvy Elixir",
+            "Anti-Scurvy Elixir".to_string(),
             Style::IPA,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -148,10 +148,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Autumn's Early Arrival Blonde",
+            "Autumn's Early Arrival Blonde".to_string(),
             Style::BlondeAle,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -164,10 +164,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Blues Don't Bother Me",
+            "Blues Don't Bother Me".to_string(),
             Style::FruitBeer,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -180,10 +180,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "36th St.",
+            "36th St.".to_string(),
             Style::SmokedAle,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -196,10 +196,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Ironclad",
+            "Ironclad".to_string(),
             Style::CaliforniaCommon,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -212,10 +212,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Golden Ticket",
+            "Golden Ticket".to_string(),
             Style::Kellerbier,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -228,10 +228,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Bier",
+            "Bier".to_string(),
             Style::Pilsner,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
@@ -244,10 +244,10 @@ fn load_recipies(factory: &mut Factory) {
             ),
         ),
         Beer::new(
-            "Red Sunset",
+            "Red Sunset".to_string(),
             Style::IrishRedAle,
             Recipe::new(
-                BatchSize::G10,
+                Capacity::G10,
                 Volume::GallonUS(10.0),
                 Steps::new(
                     Some(Interval::Hours(6)),
