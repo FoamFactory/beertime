@@ -72,7 +72,6 @@ mod tests {
             "Foobar 2001".to_string(),
             capacity::mock::bbl5(),
             equipment_group::mock::mash_tun(),
-            volume::mock::gallon_us(),
         );
         let action_3 = mock::transfer(equipment_1.clone(), equipment_2);
         assert_eq!(
@@ -97,7 +96,6 @@ mod tests {
             "Foobar 2001".to_string(),
             capacity::mock::bbl5(),
             equipment_group::mock::mash_tun(),
-            volume::mock::gallon_us(),
         );
         let action_3 = mock::transfer(equipment_1.clone(), equipment_2);
         assert_eq!(

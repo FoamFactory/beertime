@@ -21,19 +21,16 @@ fn load_equipment(factory: &mut Factory) {
             "Mash Tun 15G G10".to_string(),
             Capacity::G10,
             EquipmentGroup::MashTun,
-            Volume::GallonUS(15.0),
         ),
         Equipment::new(
             "Hot Liquor Tank 15G G10".to_string(),
             Capacity::G10,
             EquipmentGroup::HotLiquorTank,
-            Volume::GallonUS(15.0),
         ),
         Equipment::new(
             "Kettle 15G G10".to_string(),
             Capacity::G10,
             EquipmentGroup::Kettle,
-            Volume::GallonUS(15.0),
         ),
     ];
     for i in 0..7 {
@@ -41,7 +38,6 @@ fn load_equipment(factory: &mut Factory) {
             format!("Fermentor 15G G10 {}", i + 1),
             Capacity::G10,
             EquipmentGroup::Fermentor,
-            Volume::GallonUS(15.0),
         ));
     }
     for i in 0..2 {
@@ -49,7 +45,6 @@ fn load_equipment(factory: &mut Factory) {
             format!("CO2 Tank 5Lb G10 {}", i + 1),
             Capacity::G10,
             EquipmentGroup::CO2Tank,
-            Volume::Lb(5.0),
         ));
     }
     for i in 0..14 {
@@ -57,7 +52,6 @@ fn load_equipment(factory: &mut Factory) {
             format!("Keg 5G {}", i + 1),
             Capacity::G10,
             EquipmentGroup::Keg,
-            Volume::GallonUS(5.0),
         ));
     }
     for eq in eqs {

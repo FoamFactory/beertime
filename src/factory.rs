@@ -42,7 +42,7 @@ impl Factory {
         let mut existing_systems = self
             .equipments
             .values()
-            .map(|e| e.system.clone())
+            .map(|e| e.capacity.clone())
             .collect::<Vec<Capacity>>();
         existing_systems.sort();
         existing_systems.dedup();
@@ -217,12 +217,12 @@ impl Factory {
 
     pub fn list_suited_equipment(
         &self,
-        system: &Capacity,
+        capacity: &Capacity,
         equipment_group: &EquipmentGroup,
     ) -> Vec<&Equipment> {
         let mut out = Vec::new();
         for equipment in self.equipments.values() {
-            if &equipment.system == system && &equipment.equipment_group == equipment_group {
+            if equipment.capacity.volume().ge(&capacity.volume()) && &equipment.equipment_group == equipment_group {
                 out.push(equipment)
             }
         }
@@ -299,7 +299,6 @@ mod tests {
             "Foobar 2001".to_string(),
             capacity::mock::bbl5(),
             equipment_group::mock::mash_tun(),
-            volume::mock::gallon_us(),
         );
 
         factory
@@ -314,7 +313,7 @@ mod tests {
             factory.list_suited_equipment(&Capacity::BBL5, &EquipmentGroup::CO2Tank),
             Vec::<&Equipment>::new()
         );
-        let suited = factory.list_suited_equipment(&Capacity::BBL5, &EquipmentGroup::MashTun);
+        let suited = factory.list_suited_equipment(&Capacity::G5, &EquipmentGroup::MashTun);
         assert!(
             (suited == vec![&equipment_1, &equipment_2])
                 || (suited == vec![&equipment_2, &equipment_1])

@@ -41,7 +41,7 @@ impl std::str::FromStr for EquipmentGroup {
             "CO2 Tank" => Ok(EquipmentGroup::CO2Tank),
             "gastank" => Ok(EquipmentGroup::CO2Tank),
             "Keg" => Ok(EquipmentGroup::Keg),
-            "Keg" => Ok(EquipmentGroup::Keg),
+            "keg" => Ok(EquipmentGroup::Keg),
 
             _ => Err(()),
         }

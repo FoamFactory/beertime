@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use crate::volume::Volume;
 
 #[macro_use]
@@ -7,11 +8,13 @@ use crate::convert_to;
 pub enum Capacity {
     G5,
     G10,
+    G14,
     G15,
     BBL5,
     BBL7,
     BBL10,
     BBL15,
+    UNKNOWN,
 }
 
 pub trait SizeCheck {
@@ -36,11 +39,13 @@ impl Capacity {
         match self {
             Capacity::G5 => "5G",
             Capacity::G10 => "10G",
+            Capacity::G14 => "14G",
             Capacity::G15 => "15G",
             Capacity::BBL5 => "5BBL",
             Capacity::BBL7 => "7BBL",
             Capacity::BBL10 => "10BBL",
             Capacity::BBL15 => "15BBL",
+            Capacity::UNKNOWN => "Unknown",
         }
     }
 
@@ -48,11 +53,13 @@ impl Capacity {
         match self {
             Capacity::G5 => Volume::GallonUS(5.0),
             Capacity::G10 => Volume::GallonUS(10.0),
+            Capacity::G14 => Volume::GallonUS(14.0),
             Capacity::G15 => Volume::GallonUS(15.0),
             Capacity::BBL5 => Volume::BeerBarrel(5.0),
             Capacity::BBL7 => Volume::BeerBarrel(7.0),
             Capacity::BBL10 => Volume::BeerBarrel(10.0),
             Capacity::BBL15 => Volume::BeerBarrel(15.0),
+            Capacity::UNKNOWN => panic!("Unknown capacity!")
         }
     }
 
@@ -60,12 +67,19 @@ impl Capacity {
         vec![
             Capacity::G5,
             Capacity::G10,
+            Capacity::G14,
             Capacity::G15,
             Capacity::BBL5,
             Capacity::BBL7,
             Capacity::BBL10,
             Capacity::BBL15,
         ]
+    }
+}
+
+impl Display for Capacity {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.volume().lookup())
     }
 }
 
@@ -76,6 +90,7 @@ impl std::str::FromStr for Capacity {
         match s {
             s if s.to_string().is_us_gallon(5 as f32) => Ok(Capacity::G5),
             s if s.to_string().is_us_gallon(10 as f32) => Ok(Capacity::G10),
+            s if s.to_string().is_us_gallon(14 as f32) => Ok(Capacity::G14),
             s if s.to_string().is_us_gallon(15 as f32) => Ok(Capacity::G15),
             s if s.to_string().is_beer_barrel(5 as f32) => Ok(Capacity::BBL5),
             s if s.to_string().is_beer_barrel(7 as f32) => Ok(Capacity::BBL7),
@@ -97,6 +112,8 @@ pub mod mock {
     pub fn g10() -> Capacity {
         Capacity::G10
     }
+
+    pub fn g14() -> Capacity { Capacity::G14 }
 
     pub fn g15() -> Capacity {
         Capacity::G15
@@ -154,6 +171,6 @@ mod tests {
     }
     #[test]
     fn test_system_all() {
-        assert_eq!(Capacity::all().len(), 7);
+        assert_eq!(Capacity::all().len(), 8);
     }
 }

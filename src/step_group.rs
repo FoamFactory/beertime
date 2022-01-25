@@ -50,11 +50,12 @@ impl StepGroup {
     pub fn post_process_time(&self, system_capacity: &Capacity) -> Duration {
         // @TODO: this is all made up, get some more sensable magic numbers
         let factor = match system_capacity {
-            Capacity::G5 | Capacity::G10 | Capacity::G15 => 1,
+            Capacity::G5 | Capacity::G10 | Capacity::G14 | Capacity::G15 => 1,
             Capacity::BBL5 => 2,
             Capacity::BBL7 => 5,
             Capacity::BBL10 => 10,
             Capacity::BBL15 => 20,
+            Capacity::UNKNOWN => 1000000,
         };
         let dur = match self {
             StepGroup::Aging => Duration::minutes(2),

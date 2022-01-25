@@ -7,33 +7,31 @@ use crate::config::EquipmentConfig;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
     pub name: String,
-    pub system: Capacity,
+    pub capacity: Capacity,
     pub equipment_group: EquipmentGroup,
-    pub volume: Volume,
 }
 
 impl Equipment {
     pub fn new(
         name: String,
-        system: Capacity,
+        capacity: Capacity,
         equipment_group: EquipmentGroup,
-        volume: Volume,
     ) -> Self {
         Self {
             name,
-            system,
+            capacity,
             equipment_group,
-            volume,
         }
     }
 
     pub fn can_hold(&self, volume: &Volume) -> bool {
-        if let Volume::Liter(this) = self.volume.to_liter() {
+        if let Volume::Liter(this) = self.capacity.volume().to_liter() {
             if let Volume::Liter(that) = volume.to_liter() {
                 return this >= that;
             }
         }
-        panic!("should not happen");
+
+        panic!("Something went wonky when trying to convert volumes");
     }
 }
 
@@ -44,16 +42,15 @@ impl std::convert::From<&EquipmentConfig> for Equipment {
             Err(_e) => panic!("Unable to convert from configuration string to equipment group"),
         };
 
-        let capacity_vol = match Volume::from_str(&config.capacity) {
-            Ok(x) => x,
-            Err(_e) => panic!("{} does not appear to be a valid volume for capacity", &config.capacity),
-        };
+        // let capacity_vol = match Volume::from_str(&config.capacity) {
+        //     Ok(x) => x,
+        //     Err(_e) => panic!("{} does not appear to be a valid volume for capacity", &config.capacity),
+        // };
 
         Equipment::new(
             String::from(&config.name),
-            Capacity::G10,
-            equipment_type,
-            capacity_vol,
+            Capacity::from_str(&config.capacity).unwrap(),
+            equipment_type
         )
     }
 }
@@ -68,9 +65,8 @@ pub mod mock {
     pub fn equipment() -> Equipment {
         Equipment::new(
             "Foobar 2000".to_string(),
-            capacity::mock::bbl5(),
+            capacity::mock::g14(),
             equipment_group::mock::mash_tun(),
-            volume::mock::gallon_us(),
         )
     }
 }
@@ -86,15 +82,15 @@ mod tests {
     fn test_equimpment_new() {
         let equipment = mock::equipment();
         assert_eq!(&equipment.name, "Foobar 2000");
-        assert_eq!(equipment.system, capacity::mock::bbl5());
+        assert_eq!(equipment.capacity, capacity::mock::g14());
         assert_eq!(equipment.equipment_group, equipment_group::mock::mash_tun());
-        assert_eq!(equipment.volume, volume::mock::gallon_us());
+        // assert_eq!(equipment.volume, volume::mock::gallon_us());
     }
 
     #[test]
     fn test_equimpment_fits() {
         let equipment = mock::equipment();
-        assert_eq!(equipment.can_hold(&Volume::GallonUS(12.3)), false);
+        assert_eq!(equipment.can_hold(&Volume::GallonUS(14.9)), false);
         assert_eq!(equipment.can_hold(&Volume::GallonUS(5.0)), true);
     }
 }

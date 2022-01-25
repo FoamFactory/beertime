@@ -47,12 +47,6 @@
       },
       {
         "id": 8,
-        "name": "Scott's Kegerator",
-        "equipment_type": "kegerator",
-        "capacity": "2k"
-      },
-      {
-        "id": 9,
         "name": "Scott's CO2 Tank",
         "equipment_type": "gastank",
         "capacity": "5g"

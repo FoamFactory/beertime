@@ -115,7 +115,7 @@ impl<'a> Plan<'a> {
         let mut machine_id = 1;
         for equipment in factory.equipments.values() {
             if let Some(map) =
-                z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.system.clone()))
+                z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.capacity.clone()))
             {
                 // For some reason z3 gives a illegale exectution (don't remember)
                 // error when we use a ast::Set of ast::Sort::int(). Therefor,
