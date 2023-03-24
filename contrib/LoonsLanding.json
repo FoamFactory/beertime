@@ -54,6 +54,7 @@
     ],
     "recipes": [
       {
+        "recipe_id": 1,
         "name": "Damned Squirrel Mk. II",
         "batch_size": "10g",
         "phases": [
