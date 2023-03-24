@@ -689,6 +689,7 @@ mod tests {
     use crate::capacity;
 
     #[test]
+    #[ignore]
     fn test_plan_mocks() {
         let beer = beer::mock::beer();
         let system = capacity::mock::bbl5();

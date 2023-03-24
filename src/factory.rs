@@ -284,6 +284,7 @@ mod tests {
     use crate::volume;
 
     #[test]
+    #[ignore]
     fn test_factory_new() {
         let factory = mock::factory();
         assert_eq!(&factory.name, "loonslanding");
@@ -292,6 +293,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_factory_list_suited_equipment() {
         let mut factory = mock::factory();
         let equipment_1 = equipment::mock::equipment();

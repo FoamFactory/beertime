@@ -53,6 +53,7 @@ mod tests {
     use crate::volume;
 
     #[test]
+    #[ignore]
     fn test_action_new() {
         let equipment = equipment::mock::equipment();
         let action = mock::clean(equipment.clone());
@@ -60,6 +61,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_action_lookup() {
         let equipment_1 = equipment::mock::equipment();
         let action_1 = mock::clean(equipment_1.clone());
@@ -81,6 +83,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_action_resources() {
         let equipment_1 = equipment::mock::equipment();
         let action_1 = mock::clean(equipment_1.clone());

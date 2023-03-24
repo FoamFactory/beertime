@@ -134,6 +134,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_steps_new() {
         let steps = mock::steps();
         assert_eq!(

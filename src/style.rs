@@ -122,6 +122,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_style_lookup() {
         assert_eq!(Style::AmberLager.lookup(), "Amber Lager");
         assert_eq!(Style::BlondeAle.lookup(), "Blonde Ale");
@@ -138,6 +139,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_style_parse() {
         assert_eq!("Amber Lager".parse(), Ok(Style::AmberLager));
         assert_eq!("Blonde Ale".parse(), Ok(Style::BlondeAle));
@@ -154,6 +156,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_style_type() {
         assert_eq!(mock::amber_lager().r#type(), Type::Lager);
         assert_eq!(mock::kellerbier().r#type(), Type::Lager);

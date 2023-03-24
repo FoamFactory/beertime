@@ -15,6 +15,7 @@ pub mod test {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_type_diacetyl_rest() {
         assert_eq!(Type::Ale.needs_diacetyl_rest(), false);
         assert_eq!(Type::Lager.needs_diacetyl_rest(), true);

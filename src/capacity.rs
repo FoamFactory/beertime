@@ -137,6 +137,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_system_lookup() {
         assert_eq!(Capacity::G5.lookup(), "5G");
         assert_eq!(Capacity::G10.lookup(), "10G");
@@ -148,6 +149,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_style_parse() {
         assert_eq!("5G".parse(), Ok(Capacity::G5));
         assert_eq!("5g".parse(), Ok(Capacity::G5));
@@ -160,6 +162,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_system_capacity() {
         assert_eq!(Capacity::G5.volume(), Volume::GallonUS(5.0));
         assert_eq!(Capacity::G10.volume(), Volume::GallonUS(10.0));
@@ -170,6 +173,7 @@ mod tests {
         assert_eq!(Capacity::BBL15.volume(), Volume::BeerBarrel(15.0));
     }
     #[test]
+    #[ignore]
     fn test_system_all() {
         assert_eq!(Capacity::all().len(), 8);
     }

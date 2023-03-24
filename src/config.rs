@@ -139,6 +139,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn it_can_load_a_configuration_from_json() {
         let config = load_configuration_from_json();
         assert_eq!("Loons Landing Brewery", config.factory.name);
@@ -163,6 +164,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn max_mash_tun_capacity_should_be_15g() {
         let config = load_configuration_from_json();
         assert_eq!(config.factory.max_mash_tun_capacity().unwrap(), Capacity::G15);

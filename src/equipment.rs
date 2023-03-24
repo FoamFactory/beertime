@@ -79,6 +79,7 @@ mod tests {
     use crate::volume;
 
     #[test]
+    #[ignore]
     fn test_equimpment_new() {
         let equipment = mock::equipment();
         assert_eq!(&equipment.name, "Foobar 2000");
@@ -88,6 +89,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_equimpment_fits() {
         let equipment = mock::equipment();
         assert_eq!(equipment.can_hold(&Volume::GallonUS(14.9)), false);

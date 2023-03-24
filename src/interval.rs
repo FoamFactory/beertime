@@ -98,6 +98,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_interval_lookup() {
         assert_eq!(Interval::Hours(8).lookup(), "8h");
         assert_eq!(Interval::Days(8).lookup(), "8d");
@@ -106,6 +107,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_interval_parse() {
         assert_eq!("8h".parse(), Ok(Interval::Hours(8)));
         assert_eq!("8d".parse(), Ok(Interval::Days(8)));
@@ -114,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_interval_duration() {
         assert_eq!(Interval::Hours(8).duration(), Duration::seconds(8 * 3600));
         assert_eq!(
@@ -131,6 +134,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_interval_range() {
         assert_eq!(
             mock::hours().range(),

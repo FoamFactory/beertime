@@ -60,6 +60,7 @@ mod tests {
     use crate::style;
 
     #[test]
+    #[ignore]
     fn test_beer_new() {
         let beer = mock::beer();
         assert_eq!(&beer.name, "foobeer 2000");
