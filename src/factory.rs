@@ -117,10 +117,10 @@ impl Factory {
         solver.minimize(&total_batches);
         match solver.check(&[]) {
             SatResult::Sat => {
-                let model = solver.get_model();
+                let model = solver.get_model().expect("Model generation failed");
                 let mut id = 1;
                 for ((name, system), batch_count_int) in all_beer_system_batches.iter() {
-                    let batch_count = model.eval(batch_count_int).unwrap().as_i64().unwrap();
+                    let batch_count = model.eval(batch_count_int, true).unwrap().as_i64().unwrap();
                     let beer = self.beers.get(&name.to_string()).unwrap();
                     for i in 0..batch_count {
                         let (r#yield, _steps) = beer.recipe.get(&system).unwrap();

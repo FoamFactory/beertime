@@ -393,7 +393,7 @@ impl<'a> Plan<'a> {
                 panic!("TODO: better error handling");
             }
             SatResult::Sat => {
-                let model = solver.get_model();
+                let model = solver.get_model().expect("Model generation failed");
                 // println!("{:?}", model);
                 // First normalize all the z3 variables into a hashmap that let
                 // us see the process, transfer and clean timestamps and the
@@ -414,10 +414,10 @@ impl<'a> Plan<'a> {
                     let machine_step = z3_step_machine
                         .get(&(*batch_id, step_group.clone()))
                         .unwrap();
-                    let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
+                    let machine_value = model.eval(machine_step, true).unwrap().as_i64().unwrap();
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
-                    let ts_value = model.eval(var).unwrap().as_i64().unwrap();
+                    let ts_value = model.eval(var, true).unwrap().as_i64().unwrap();
                     let ts = DateTime::<Utc>::from_utc(
                         NaiveDateTime::from_timestamp_opt(ts_value, 0).unwrap(),
                         Utc,
@@ -532,7 +532,7 @@ impl<'a> Plan<'a> {
                     if i == repeat - 1 {
                         return;
                     }
-                    let model = solver.get_model();
+                    let model = solver.get_model().expect("model generation failed");
                     // Wrapping a solver.pop/push around this loop leads to worse
                     // planning outcomes.  This is strange because my intuition
                     // would say that adding more constraints would make it
@@ -540,7 +540,7 @@ impl<'a> Plan<'a> {
                     // appears that z3 can make better heuristics when there
                     // are more overlapping constraints.
                     for ending in all_endings {
-                        let cur_val = model.eval(ending).unwrap();
+                        let cur_val = model.eval(ending, true).unwrap();
                         solver.assert(&ending.le(&cur_val));
                     }
                 }
