@@ -45,7 +45,7 @@ impl Recipe {
 
 impl From<(&FactoryConfig, &RecipeConfig)> for Recipe {
     fn from(config_pair: (&FactoryConfig, &RecipeConfig)) -> Self {
-        let (factory_config_ref, recipe_config_ref) = config_pair;
+        let (factory_config_ref, _recipe_config_ref) = config_pair;
         let system_capacity = match Capacity::from_str(&factory_config_ref.capacity) {
             Ok(c) => c,
             Err(_) => panic!(
