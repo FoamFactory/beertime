@@ -418,8 +418,10 @@ impl<'a> Plan<'a> {
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
                     let ts_value = model.eval(var).unwrap().as_i64().unwrap();
-                    let ts =
-                        DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_value, 0), Utc);
+                    let ts = DateTime::<Utc>::from_utc(
+                        NaiveDateTime::from_timestamp_opt(ts_value, 0).unwrap(),
+                        Utc,
+                    );
                     match events.get_mut(&(*batch_id, step_group.clone())) {
                         None => {
                             let mut ts1a = None;
@@ -674,8 +676,8 @@ pub mod mock {
         batchneed: &'a batchneed::BatchNeed<'a>,
     ) -> Plan<'a> {
         let action = action::mock::mock_process(equipment);
-        let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
-        let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
+        let start = Utc.with_ymd_and_hms(2020, 12, 30, 13, 14, 15).unwrap();
+        let end = Utc.with_ymd_and_hms(2020, 12, 30, 15, 14, 15).unwrap();
 
         Plan::new(666, &batchneed, step_group, action, start, end)
     }
