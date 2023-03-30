@@ -58,11 +58,11 @@ pub mod mock {
     use crate::equipment_group;
     use crate::volume;
 
-    pub fn equipment() -> Equipment {
+    pub fn mock_equipment() -> Equipment {
         Equipment::new(
             "Foobar 2000".to_string(),
-            capacity::mock::g14(),
-            equipment_group::mock::mash_tun(),
+            capacity::mock::mock_g14(),
+            equipment_group::mock::mock_mash_tun(),
         )
     }
 }
@@ -76,16 +76,16 @@ mod tests {
 
     #[test]
     fn test_equimpment_new() {
-        let equipment = mock::equipment();
+        let equipment = mock::mock_equipment();
         assert_eq!(&equipment.name, "Foobar 2000");
-        assert_eq!(equipment.capacity, capacity::mock::g14());
-        assert_eq!(equipment.equipment_group, equipment_group::mock::mash_tun());
-        // assert_eq!(equipment.volume, volume::mock::gallon_us());
+        assert_eq!(equipment.capacity, capacity::mock::mock_g14());
+        assert_eq!(equipment.equipment_group, equipment_group::mock::mock_mash_tun());
+        // assert_eq!(equipment.volume, volume::mock::mock_gallon_us());
     }
 
     #[test]
     fn test_equimpment_fits() {
-        let equipment = mock::equipment();
+        let equipment = mock::mock_equipment();
         assert_eq!(equipment.can_hold(&Volume::GallonUS(14.9)), false);
         assert_eq!(equipment.can_hold(&Volume::GallonUS(5.0)), true);
     }

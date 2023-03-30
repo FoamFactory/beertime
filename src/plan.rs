@@ -668,12 +668,12 @@ pub mod mock {
     use crate::equipment;
     use crate::step_group;
 
-    pub fn plan<'a>(
+    pub fn mock_plan<'a>(
         equipment: equipment::Equipment,
         step_group: step_group::StepGroup,
         batchneed: &'a batchneed::BatchNeed<'a>,
     ) -> Plan<'a> {
-        let action = action::mock::process(equipment);
+        let action = action::mock::mock_process(equipment);
         let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
         let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
 
@@ -694,24 +694,24 @@ mod tests {
 
     #[test]
     fn test_plan_mocks() {
-        let beer = beer::mock::beer();
-        let system = capacity::mock::bbl5();
-        let equipment = equipment::mock::equipment();
-        let batchneed = batchneed::mock::batchneed(&beer, system.clone());
-        let step_group = step_group::mock::brewing();
-        let plan = mock::plan(equipment.clone(), step_group.clone(), &batchneed);
-        let equipment = equipment::mock::equipment();
+        let beer = beer::mock::mock_beer();
+        let system = capacity::mock::mock_bbl5();
+        let equipment = equipment::mock::mock_equipment();
+        let batchneed = batchneed::mock::mock_batchneed(&beer, system.clone());
+        let step_group = step_group::mock::mock_brewing();
+        let plan = mock::mock_plan(equipment.clone(), step_group.clone(), &batchneed);
+        let equipment = equipment::mock::mock_equipment();
         assert_eq!(plan.id, 666);
         assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.step_group, step_group);
         assert_eq!(plan.batch.system, system);
-        assert_eq!(plan.action, action::mock::process(equipment));
+        assert_eq!(plan.action, action::mock::mock_process(equipment));
         assert!(plan.start < plan.end);
     }
 
     // #[test]
     // fn test_plan_do_magic() {
-    //     let factory = factory::mock::factory();
+    //     let factory = factory::mock::mock_factory();
     //     let now: DateTime<Utc> = Utc::now();
     //     let wishlist = HashMap::new();
     //     // @FIXME: better test case: real beer in factory

@@ -68,51 +68,51 @@ impl std::str::FromStr for Style {
 pub mod mock {
     use super::*;
 
-    pub fn amber_lager() -> Style {
+    pub fn mock_amber_lager() -> Style {
         Style::AmberLager
     }
 
-    pub fn blonde_ale() -> Style {
+    pub fn mock_blonde_ale() -> Style {
         Style::BlondeAle
     }
 
-    pub fn brown_ale() -> Style {
+    pub fn mock_brown_ale() -> Style {
         Style::BrownAle
     }
 
-    pub fn california_common() -> Style {
+    pub fn mock_california_common() -> Style {
         Style::CaliforniaCommon
     }
 
-    pub fn fruit_beer() -> Style {
+    pub fn mock_fruit_beer() -> Style {
         Style::FruitBeer
     }
 
-    pub fn ipa() -> Style {
+    pub fn mock_ipa() -> Style {
         Style::IPA
     }
 
-    pub fn imperial_stout() -> Style {
+    pub fn mock_imperial_stout() -> Style {
         Style::ImperialStout
     }
 
-    pub fn irish_red_ale() -> Style {
+    pub fn mock_irish_red_ale() -> Style {
         Style::IrishRedAle
     }
 
-    pub fn kellerbier() -> Style {
+    pub fn mock_kellerbier() -> Style {
         Style::Kellerbier
     }
 
-    pub fn pilsner() -> Style {
+    pub fn mock_pilsner() -> Style {
         Style::Pilsner
     }
 
-    pub fn smoked_ale() -> Style {
+    pub fn mock_smoked_ale() -> Style {
         Style::SmokedAle
     }
 
-    pub fn specialty_stout() -> Style {
+    pub fn mock_specialty_stout() -> Style {
         Style::SpecialtyStout
     }
 }
@@ -155,17 +155,17 @@ mod tests {
 
     #[test]
     fn test_style_type() {
-        assert_eq!(mock::amber_lager().r#type(), Type::Lager);
-        assert_eq!(mock::kellerbier().r#type(), Type::Lager);
-        assert_eq!(mock::pilsner().r#type(), Type::Lager);
+        assert_eq!(mock::mock_amber_lager().r#type(), Type::Lager);
+        assert_eq!(mock::mock_kellerbier().r#type(), Type::Lager);
+        assert_eq!(mock::mock_pilsner().r#type(), Type::Lager);
 
-        assert_eq!(mock::blonde_ale().r#type(), Type::Ale);
-        assert_eq!(mock::california_common().r#type(), Type::Ale);
-        assert_eq!(mock::fruit_beer().r#type(), Type::Ale);
-        assert_eq!(mock::ipa().r#type(), Type::Ale);
-        assert_eq!(mock::imperial_stout().r#type(), Type::Ale);
-        assert_eq!(mock::irish_red_ale().r#type(), Type::Ale);
-        assert_eq!(mock::smoked_ale().r#type(), Type::Ale);
-        assert_eq!(mock::specialty_stout().r#type(), Type::Ale);
+        assert_eq!(mock::mock_blonde_ale().r#type(), Type::Ale);
+        assert_eq!(mock::mock_california_common().r#type(), Type::Ale);
+        assert_eq!(mock::mock_fruit_beer().r#type(), Type::Ale);
+        assert_eq!(mock::mock_ipa().r#type(), Type::Ale);
+        assert_eq!(mock::mock_imperial_stout().r#type(), Type::Ale);
+        assert_eq!(mock::mock_irish_red_ale().r#type(), Type::Ale);
+        assert_eq!(mock::mock_smoked_ale().r#type(), Type::Ale);
+        assert_eq!(mock::mock_specialty_stout().r#type(), Type::Ale);
     }
 }

@@ -104,31 +104,31 @@ impl std::str::FromStr for Capacity {
 pub mod mock {
     use super::*;
 
-    pub fn g5() -> Capacity {
+    pub fn mock_g5() -> Capacity {
         Capacity::G5
     }
 
-    pub fn g10() -> Capacity {
+    pub fn mock_g10() -> Capacity {
         Capacity::G10
     }
 
-    pub fn g14() -> Capacity {
+    pub fn mock_g14() -> Capacity {
         Capacity::G14
     }
 
-    pub fn g15() -> Capacity {
+    pub fn mock_g15() -> Capacity {
         Capacity::G15
     }
 
-    pub fn bbl5() -> Capacity {
+    pub fn mock_bbl5() -> Capacity {
         Capacity::BBL5
     }
 
-    pub fn bbl10() -> Capacity {
+    pub fn mock_bbl10() -> Capacity {
         Capacity::BBL10
     }
 
-    pub fn bbl15() -> Capacity {
+    pub fn mock_bbl15() -> Capacity {
         Capacity::BBL15
     }
 }

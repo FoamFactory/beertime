@@ -69,11 +69,11 @@ pub mod mock {
     use crate::steps;
     use crate::volume;
 
-    pub fn Recipe() -> Recipe {
+    pub fn mock_recipe() -> Recipe {
         Recipe::new(
-            capacity::mock::g5(),
-            volume::mock::gallon_us(),
-            steps::mock::steps(),
+            capacity::mock::mock_g5(),
+            volume::mock::mock_gallon_us(),
+            steps::mock::mock_steps(),
         )
     }
 }
@@ -87,10 +87,10 @@ mod tests {
 
     #[test]
     fn test_recipe_new() {
-        let recipe = mock::Recipe();
+        let recipe = mock::mock_recipe();
         assert_eq!(
-            recipe.get(&capacity::mock::g5()),
-            Some(&(volume::mock::gallon_us(), steps::mock::steps()))
+            recipe.get(&capacity::mock::mock_g5()),
+            Some(&(volume::mock::mock_gallon_us(), steps::mock::mock_steps()))
         );
     }
 }

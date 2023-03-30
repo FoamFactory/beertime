@@ -88,27 +88,27 @@ impl std::str::FromStr for StepGroup {
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    pub fn aging() -> StepGroup {
+    pub fn mock_aging() -> StepGroup {
         StepGroup::Aging
     }
 
-    pub fn brewing() -> StepGroup {
+    pub fn mock_brewing() -> StepGroup {
         StepGroup::Brewing
     }
 
-    pub fn carbonation() -> StepGroup {
+    pub fn mock_carbonation() -> StepGroup {
         StepGroup::Carbonation
     }
 
-    pub fn diacetyl_rest() -> StepGroup {
+    pub fn mock_diacetyl_rest() -> StepGroup {
         StepGroup::DiacetylRest
     }
 
-    pub fn primary_fermentation() -> StepGroup {
+    pub fn mock_primary_fermentation() -> StepGroup {
         StepGroup::PrimaryFermentation
     }
 
-    pub fn secondary_fermentation() -> StepGroup {
+    pub fn mock_secondary_fermentation() -> StepGroup {
         StepGroup::SecondaryFermentation
     }
 }

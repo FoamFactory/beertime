@@ -262,15 +262,15 @@ pub mod mock {
     use crate::beer;
     use crate::equipment;
 
-    pub fn factory() -> Factory {
+    pub fn mock_factory() -> Factory {
         let mut factory = Factory::new("loonslanding");
 
-        let equipment = equipment::mock::equipment();
+        let equipment = equipment::mock::mock_equipment();
         factory
             .equipments
             .insert(equipment.name.to_string(), equipment);
 
-        let beer = beer::mock::beer();
+        let beer = beer::mock::mock_beer();
         factory.beers.insert(beer.name.to_string(), beer);
 
         factory
@@ -287,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_factory_new() {
-        let factory = mock::factory();
+        let factory = mock::mock_factory();
         assert_eq!(&factory.name, "loonslanding");
         assert_eq!(factory.equipments.len(), 1);
         assert_eq!(factory.beers.len(), 1);
@@ -295,12 +295,12 @@ mod tests {
 
     #[test]
     fn test_factory_list_suited_equipment() {
-        let mut factory = mock::factory();
-        let equipment_1 = equipment::mock::equipment();
+        let mut factory = mock::mock_factory();
+        let equipment_1 = equipment::mock::mock_equipment();
         let equipment_2 = Equipment::new(
             "Foobar 2001".to_string(),
-            capacity::mock::bbl5(),
-            equipment_group::mock::mash_tun(),
+            capacity::mock::mock_bbl5(),
+            equipment_group::mock::mock_mash_tun(),
         );
 
         factory

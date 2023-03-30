@@ -27,11 +27,11 @@ impl std::str::FromStr for Work {
 pub mod mock {
     use super::*;
 
-    pub fn transfer() -> Work {
+    pub fn mock_transfer() -> Work {
         Work::Transfer
     }
 
-    pub fn clean() -> Work {
+    pub fn mock_clean() -> Work {
         Work::Clean
     }
 }

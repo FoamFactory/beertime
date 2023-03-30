@@ -36,8 +36,8 @@ pub mod mock {
     use super::*;
     use crate::volume;
 
-    pub fn batchneed<'a>(beer: &'a Beer, system: Capacity) -> BatchNeed<'a> {
-        BatchNeed::new(1, beer, system, volume::mock::gallon_us())
+    pub fn mock_batchneed<'a>(beer: &'a Beer, system: Capacity) -> BatchNeed<'a> {
+        BatchNeed::new(1, beer, system, volume::mock::mock_gallon_us())
     }
 }
 
@@ -50,12 +50,12 @@ mod tests {
 
     #[test]
     fn test_batchneed_new() {
-        let beer = beer::mock::beer();
-        let system = capacity::mock::bbl5();
-        let batchneed = mock::batchneed(&beer, system.clone());
+        let beer = beer::mock::mock_beer();
+        let system = capacity::mock::mock_bbl5();
+        let batchneed = mock::mock_batchneed(&beer, system.clone());
         assert_eq!(batchneed.id, 1);
         assert_eq!(batchneed.beer, &beer);
         assert_eq!(batchneed.system, system);
-        assert_eq!(batchneed.volume, volume::mock::gallon_us());
+        assert_eq!(batchneed.volume, volume::mock::mock_gallon_us());
     }
 }
