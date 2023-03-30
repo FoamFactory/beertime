@@ -48,7 +48,7 @@ impl From<(&FactoryConfig, &RecipeConfig)> for Beer {
         Beer::new(
             cloned_str,
             Style::BlondeAle,
-            Recipe::from((factory_config, recipe_config))
+            Recipe::from((factory_config, recipe_config)),
         )
     }
 }

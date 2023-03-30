@@ -5,11 +5,11 @@ use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
+use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::factory::Factory;
 use crate::step_group::StepGroup;
-use crate::capacity::Capacity;
 
 /*
 Premium customers coin insertion slot
@@ -114,9 +114,10 @@ impl<'a> Plan<'a> {
         }
         let mut machine_id = 1;
         for equipment in factory.equipments.values() {
-            if let Some(map) =
-                z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.capacity.clone()))
-            {
+            if let Some(map) = z3_machines.get_mut(&(
+                equipment.equipment_group.clone(),
+                equipment.capacity.clone(),
+            )) {
                 // For some reason z3 gives a illegale exectution (don't remember)
                 // error when we use a ast::Set of ast::Sort::int(). Therefor,
                 // we use this (plain number) as a work around.
@@ -363,7 +364,10 @@ impl<'a> Plan<'a> {
         factory: &'a Factory,
         batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
         solver: Optimize<'ctx>,
-        z3_machines: HashMap<(EquipmentGroup, Capacity), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
+        z3_machines: HashMap<
+            (EquipmentGroup, Capacity),
+            HashMap<usize, (ast::Int<'ctx>, Equipment)>,
+        >,
         z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
         z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
         all_endings: &[ast::Int<'ctx>],
@@ -685,8 +689,8 @@ mod tests {
     use crate::beer;
     use crate::equipment;
     // use crate::factory;
-    use crate::step_group;
     use crate::capacity;
+    use crate::step_group;
 
     #[test]
     fn test_plan_mocks() {

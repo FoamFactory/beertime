@@ -1,7 +1,7 @@
 use chrono::Duration;
 
-use crate::equipment_group::EquipmentGroup;
 use crate::capacity::Capacity;
+use crate::equipment_group::EquipmentGroup;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum StepGroup {

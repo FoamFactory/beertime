@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use crate::volume::Volume;
+use std::fmt::{Display, Formatter};
 
 #[macro_use]
 use crate::convert_to;
@@ -24,13 +24,12 @@ pub trait SizeCheck {
 
 impl SizeCheck for String {
     fn is_us_gallon(&self, amount: f32) -> bool {
-        return self.as_str() == format!("{}g", amount)
-            || self.as_str() == format!("{}G", amount);
+        return self.as_str() == format!("{}g", amount) || self.as_str() == format!("{}G", amount);
     }
 
     fn is_beer_barrel(&self, amount: f32) -> bool {
         return self.as_str() == format!("{}bbl", amount)
-          || self.as_str() == format!("{}BBL", amount);
+            || self.as_str() == format!("{}BBL", amount);
     }
 }
 
@@ -59,7 +58,7 @@ impl Capacity {
             Capacity::BBL7 => Volume::BeerBarrel(7.0),
             Capacity::BBL10 => Volume::BeerBarrel(10.0),
             Capacity::BBL15 => Volume::BeerBarrel(15.0),
-            Capacity::UNKNOWN => panic!("Unknown capacity!")
+            Capacity::UNKNOWN => panic!("Unknown capacity!"),
         }
     }
 
@@ -113,7 +112,9 @@ pub mod mock {
         Capacity::G10
     }
 
-    pub fn g14() -> Capacity { Capacity::G14 }
+    pub fn g14() -> Capacity {
+        Capacity::G14
+    }
 
     pub fn g15() -> Capacity {
         Capacity::G15

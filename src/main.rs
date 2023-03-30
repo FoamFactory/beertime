@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use clap::Parser;
 
 use beertime::beer::Beer;
+use beertime::capacity::Capacity;
 use beertime::config::Config;
 use beertime::equipment::Equipment;
 use beertime::equipment_group::EquipmentGroup;
@@ -12,7 +13,6 @@ use beertime::plan::Plan;
 use beertime::recipe::Recipe;
 use beertime::steps::Steps;
 use beertime::style::Style;
-use beertime::capacity::Capacity;
 use beertime::volume::Volume;
 
 fn load_equipment(factory: &mut Factory) {
@@ -291,7 +291,7 @@ fn main() {
     let def_file_path = args.factory_definition_file;
     match Config::read_config(def_file_path) {
         Ok(conf) => println!("Factory Name: {}", conf.factory.name),
-        _ => panic!("Unable to read configuration file. Does it exist and in proper format?")
+        _ => panic!("Unable to read configuration file. Does it exist and in proper format?"),
     }
     // let mut factory = Factory::new("Loons Landing");
     // load(&mut factory);

@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
-use serde_json::Result;
 use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::factory::Factory;
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
 
 #[derive(Serialize, Deserialize)]
 struct Person {
@@ -42,19 +42,28 @@ impl FactoryConfig {
         for equipment_config in &self.equipment {
             let eq_group = match EquipmentGroup::from_str(&equipment_config.equipment_type) {
                 Ok(s) => s,
-                Err(_) => panic!("{} does not appear to be a valid equipment group", equipment_config.equipment_type),
+                Err(_) => panic!(
+                    "{} does not appear to be a valid equipment group",
+                    equipment_config.equipment_type
+                ),
             };
 
             if eq_group == EquipmentGroup::MashTun {
-                println!("Saw mash tun equipment group {} with capacity config: {}", equipment_config.name, equipment_config.capacity);
+                println!(
+                    "Saw mash tun equipment group {} with capacity config: {}",
+                    equipment_config.name, equipment_config.capacity
+                );
                 mash_tuns.push(Equipment::from(equipment_config));
             }
         }
 
-        let max_cap = mash_tuns.iter().map(|eq| {
-            println!("Saw mash tun {} with capacity: {}", eq.name, eq.capacity);
-            eq.capacity.clone()
-        }).min();
+        let max_cap = mash_tuns
+            .iter()
+            .map(|eq| {
+                println!("Saw mash tun {} with capacity: {}", eq.name, eq.capacity);
+                eq.capacity.clone()
+            })
+            .min();
 
         max_cap
         // *mash_tuns.iter().min().unwrap();
@@ -123,13 +132,13 @@ pub struct RecipeConfig {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::beer::Beer;
     use crate::equipment::Equipment;
     use crate::equipment_group::EquipmentGroup;
     use crate::recipe::Recipe;
     use crate::volume::Volume;
     use crate::volume::Volume::GallonUS;
-    use super::*;
 
     fn load_configuration_from_json() -> Config {
         let mut test_config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -165,6 +174,9 @@ mod tests {
     #[test]
     fn max_mash_tun_capacity_should_be_15g() {
         let config = load_configuration_from_json();
-        assert_eq!(config.factory.max_mash_tun_capacity().unwrap(), Capacity::G15);
+        assert_eq!(
+            config.factory.max_mash_tun_capacity().unwrap(),
+            Capacity::G15
+        );
     }
 }

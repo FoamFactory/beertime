@@ -1,8 +1,8 @@
-use std::str::FromStr;
-use crate::equipment_group::EquipmentGroup;
 use crate::capacity::Capacity;
-use crate::volume::Volume;
 use crate::config::EquipmentConfig;
+use crate::equipment_group::EquipmentGroup;
+use crate::volume::Volume;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Equipment {
@@ -12,11 +12,7 @@ pub struct Equipment {
 }
 
 impl Equipment {
-    pub fn new(
-        name: String,
-        capacity: Capacity,
-        equipment_group: EquipmentGroup,
-    ) -> Self {
+    pub fn new(name: String, capacity: Capacity, equipment_group: EquipmentGroup) -> Self {
         Self {
             name,
             capacity,
@@ -50,7 +46,7 @@ impl std::convert::From<&EquipmentConfig> for Equipment {
         Equipment::new(
             String::from(&config.name),
             Capacity::from_str(&config.capacity).unwrap(),
-            equipment_type
+            equipment_type,
         )
     }
 }
@@ -58,8 +54,8 @@ impl std::convert::From<&EquipmentConfig> for Equipment {
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    use crate::equipment_group;
     use crate::capacity;
+    use crate::equipment_group;
     use crate::volume;
 
     pub fn equipment() -> Equipment {
@@ -74,8 +70,8 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::equipment_group;
     use crate::capacity;
+    use crate::equipment_group;
     use crate::volume;
 
     #[test]

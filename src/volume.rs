@@ -65,7 +65,9 @@ impl Volume {
         convert_to!(Volume::Liter, self)
     }
 
-    pub fn to_bbl(&self) -> Volume { convert_to!(Volume::BeerBarrel, self) }
+    pub fn to_bbl(&self) -> Volume {
+        convert_to!(Volume::BeerBarrel, self)
+    }
 
     pub fn full_batches(&self, batch_size: &Volume) -> usize {
         if let Volume::Liter(need) = self.to_liter() {
@@ -124,7 +126,9 @@ pub mod mock {
         Volume::Lb(12.2)
     }
 
-    pub fn bbl() -> Volume { Volume::BeerBarrel(7.0) }
+    pub fn bbl() -> Volume {
+        Volume::BeerBarrel(7.0)
+    }
 }
 
 #[cfg(test)]

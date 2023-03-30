@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::steps::Steps;
 use crate::capacity::Capacity;
 use crate::config::{FactoryConfig, RecipeConfig};
+use crate::steps::Steps;
 use crate::volume::Volume;
 
 /**
@@ -48,20 +48,25 @@ impl From<(&FactoryConfig, &RecipeConfig)> for Recipe {
         let (factory_config_ref, recipe_config_ref) = config_pair;
         let system_capacity = match Capacity::from_str(&factory_config_ref.capacity) {
             Ok(c) => c,
-            Err(_) => panic!("{} does not appear to be a valid system capacity", &factory_config_ref.capacity),
+            Err(_) => panic!(
+                "{} does not appear to be a valid system capacity",
+                &factory_config_ref.capacity
+            ),
         };
 
-        Recipe::new(system_capacity,
-                    Volume::GallonUS(10 as f32),
-                    Steps::new(None, None, None, None, None, None))
+        Recipe::new(
+            system_capacity,
+            Volume::GallonUS(10 as f32),
+            Steps::new(None, None, None, None, None, None),
+        )
     }
 }
 
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    use crate::steps;
     use crate::capacity;
+    use crate::steps;
     use crate::volume;
 
     pub fn Recipe() -> Recipe {
@@ -76,8 +81,8 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::steps;
     use crate::capacity;
+    use crate::steps;
     use crate::volume;
 
     #[test]

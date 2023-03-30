@@ -1,7 +1,7 @@
 use crate::beer::Beer;
+use crate::capacity::Capacity;
 use crate::interval::Interval;
 use crate::step_group::StepGroup;
-use crate::capacity::Capacity;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]

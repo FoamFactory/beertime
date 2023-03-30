@@ -47,9 +47,9 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capacity;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::capacity;
     use crate::volume;
 
     #[test]

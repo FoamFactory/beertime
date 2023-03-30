@@ -5,10 +5,10 @@ use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::batchneed::BatchNeed;
 use crate::beer::Beer;
+use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::step_group::StepGroup;
-use crate::capacity::Capacity;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
@@ -222,7 +222,9 @@ impl Factory {
     ) -> Vec<&Equipment> {
         let mut out = Vec::new();
         for equipment in self.equipments.values() {
-            if equipment.capacity.volume().ge(&capacity.volume()) && &equipment.equipment_group == equipment_group {
+            if equipment.capacity.volume().ge(&capacity.volume())
+                && &equipment.equipment_group == equipment_group
+            {
                 out.push(equipment)
             }
         }
@@ -278,9 +280,9 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capacity;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::capacity;
     use crate::volume;
 
     #[test]
