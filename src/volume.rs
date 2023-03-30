@@ -136,10 +136,7 @@ mod tests {
 
     #[test]
     fn test_volume_convert_bbl() {
-        assert_eq!(
-            mock::mock_bbl().to_gallon_us(),
-            Volume::GallonUS((217.00043))
-        );
+        assert_eq!(mock::mock_bbl().to_gallon_us(), Volume::GallonUS(217.00043));
         assert_eq!(mock::mock_bbl().to_liter(), Volume::Liter(821.4359));
     }
     #[test]
