@@ -1,6 +1,5 @@
 use crate::config::{FactoryConfig, RecipeConfig};
 use crate::recipe::Recipe;
-use crate::style;
 use crate::style::Style;
 
 #[derive(Debug, PartialEq)]

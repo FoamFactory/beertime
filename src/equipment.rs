@@ -56,7 +56,6 @@ pub mod mock {
     use super::*;
     use crate::capacity;
     use crate::equipment_group;
-    use crate::volume;
 
     pub fn mock_equipment() -> Equipment {
         Equipment::new(
@@ -72,14 +71,16 @@ mod tests {
     use super::*;
     use crate::capacity;
     use crate::equipment_group;
-    use crate::volume;
 
     #[test]
     fn test_equimpment_new() {
         let equipment = mock::mock_equipment();
         assert_eq!(&equipment.name, "Foobar 2000");
         assert_eq!(equipment.capacity, capacity::mock::mock_g14());
-        assert_eq!(equipment.equipment_group, equipment_group::mock::mock_mash_tun());
+        assert_eq!(
+            equipment.equipment_group,
+            equipment_group::mock::mock_mash_tun()
+        );
         // assert_eq!(equipment.volume, volume::mock::mock_gallon_us());
     }
 

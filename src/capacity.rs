@@ -1,9 +1,6 @@
 use crate::volume::Volume;
 use std::fmt::{Display, Formatter};
 
-#[macro_use]
-use crate::convert_to;
-
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Capacity {
     G5,

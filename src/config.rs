@@ -1,12 +1,9 @@
-use std::path::PathBuf;
 use std::str::FromStr;
 
 use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
-use crate::factory::Factory;
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
 
 #[derive(Serialize, Deserialize)]
 struct Person {
@@ -132,13 +129,12 @@ pub struct RecipeConfig {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use super::*;
     use crate::beer::Beer;
     use crate::equipment::Equipment;
-    use crate::equipment_group::EquipmentGroup;
-    use crate::recipe::Recipe;
     use crate::volume::Volume;
-    use crate::volume::Volume::GallonUS;
 
     fn load_configuration_from_json() -> Config {
         let mut test_config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -166,7 +162,7 @@ mod tests {
         // Check to make sure there is at least one recipe called "Damned Squirrel, Mk. II"
         for recipe_config in &config.factory.recipes {
             if recipe_config.name == "Damned Squirrel Mk. II" {
-                let beer = Beer::from((&config.factory, recipe_config));
+                let _beer = Beer::from((&config.factory, recipe_config));
             }
         }
     }

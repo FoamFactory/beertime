@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -134,11 +133,13 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn test_volume_convert_bbl() {
-        assert_eq!(mock::mock_bbl().to_gallon_us(), Volume::GallonUS((217.00043)));
+        assert_eq!(
+            mock::mock_bbl().to_gallon_us(),
+            Volume::GallonUS((217.00043))
+        );
         assert_eq!(mock::mock_bbl().to_liter(), Volume::Liter(821.4359));
     }
     #[test]
@@ -156,7 +157,10 @@ mod tests {
     fn test_volume_lookup() {
         assert_eq!(&mock::mock_gallon_us().lookup(), "5G");
         assert_eq!(&mock::mock_gallon_us_dry().lookup(), "12.2 US Dry Gallon");
-        assert_eq!(&mock::mock_gallon_imperial().lookup(), "12.2 Imperial Gallon");
+        assert_eq!(
+            &mock::mock_gallon_imperial().lookup(),
+            "12.2 Imperial Gallon"
+        );
         assert_eq!(&mock::mock_liter().lookup(), "12.2 liters");
     }
 

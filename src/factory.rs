@@ -283,7 +283,6 @@ mod tests {
     use crate::capacity;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::volume;
 
     #[test]
     fn test_factory_new() {
