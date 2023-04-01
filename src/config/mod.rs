@@ -8,13 +8,6 @@ pub use recipe_config::RecipeConfig;
 use crate::capacity::Capacity;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-struct Person {
-    name: String,
-    age: u8,
-    phones: Vec<String>,
-}
-
 #[derive(serde::Deserialize)]
 pub struct Config {
     pub factory: FactoryConfig,
