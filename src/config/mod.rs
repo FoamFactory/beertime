@@ -1,5 +1,8 @@
 use std::str::FromStr;
 
+mod equipment_config;
+pub use equipment_config::EquipmentConfig;
+
 use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
@@ -111,14 +114,6 @@ impl FactoryConfig {
     //
     //     system_capacity
     // }
-}
-
-#[derive(serde::Deserialize)]
-pub struct EquipmentConfig {
-    pub id: u32,
-    pub name: String,
-    pub equipment_type: String,
-    pub capacity: String,
 }
 
 #[derive(serde::Deserialize)]
