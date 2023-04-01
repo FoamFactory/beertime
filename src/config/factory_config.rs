@@ -7,7 +7,7 @@ use crate::equipment_group::EquipmentGroup;
 pub use super::equipment_config::EquipmentConfig;
 pub use super::recipe_config::RecipeConfig;
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct FactoryConfig {
     pub name: String,
     pub equipment: Vec<EquipmentConfig>,

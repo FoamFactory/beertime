@@ -290,7 +290,10 @@ fn main() {
     let args = Args::parse();
     let def_file_path = args.factory_definition_file;
     match Config::read_config(def_file_path) {
-        Ok(conf) => println!("Factory Name: {}", conf.factory.name),
+        Ok(conf) => {
+            println!("Factory Name: {}", conf.factory.name);
+            println!("Factory settings: {:?}", conf.factory);
+        }
         _ => panic!("Unable to read configuration file. Does it exist and in proper format?"),
     }
     if false {
