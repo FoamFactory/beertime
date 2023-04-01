@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 mod equipment_config;
 pub use equipment_config::EquipmentConfig;
+mod recipe_config;
+pub use recipe_config::RecipeConfig;
 
 use crate::capacity::Capacity;
 use crate::equipment::Equipment;
@@ -114,12 +116,6 @@ impl FactoryConfig {
     //
     //     system_capacity
     // }
-}
-
-#[derive(serde::Deserialize)]
-pub struct RecipeConfig {
-    pub name: String,
-    pub batch_size: String,
 }
 
 #[cfg(test)]
