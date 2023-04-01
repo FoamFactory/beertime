@@ -1,11 +1,11 @@
 mod equipment_config;
-pub use equipment_config::EquipmentConfig;
 mod factory_config;
-pub use factory_config::FactoryConfig;
 mod recipe_config;
+
+pub use equipment_config::EquipmentConfig;
+pub use factory_config::FactoryConfig;
 pub use recipe_config::RecipeConfig;
 
-use crate::capacity::Capacity;
 use serde::{Deserialize, Serialize};
 
 #[derive(serde::Deserialize)]
@@ -23,10 +23,11 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use std::path::PathBuf;
 
-    use super::*;
     use crate::beer::Beer;
+    use crate::capacity::Capacity;
     use crate::equipment::Equipment;
     use crate::volume::Volume;
 
