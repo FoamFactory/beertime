@@ -5,11 +5,11 @@ use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::action::Action;
 use crate::batchneed::BatchNeed;
+use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::factory::Factory;
 use crate::step_group::StepGroup;
-use crate::capacity::Capacity;
 
 /*
 Premium customers coin insertion slot
@@ -114,9 +114,10 @@ impl<'a> Plan<'a> {
         }
         let mut machine_id = 1;
         for equipment in factory.equipments.values() {
-            if let Some(map) =
-                z3_machines.get_mut(&(equipment.equipment_group.clone(), equipment.capacity.clone()))
-            {
+            if let Some(map) = z3_machines.get_mut(&(
+                equipment.equipment_group.clone(),
+                equipment.capacity.clone(),
+            )) {
                 // For some reason z3 gives a illegale exectution (don't remember)
                 // error when we use a ast::Set of ast::Sort::int(). Therefor,
                 // we use this (plain number) as a work around.
@@ -363,7 +364,10 @@ impl<'a> Plan<'a> {
         factory: &'a Factory,
         batches_needed: &'a HashMap<usize, BatchNeed<'a>>,
         solver: Optimize<'ctx>,
-        z3_machines: HashMap<(EquipmentGroup, Capacity), HashMap<usize, (ast::Int<'ctx>, Equipment)>>,
+        z3_machines: HashMap<
+            (EquipmentGroup, Capacity),
+            HashMap<usize, (ast::Int<'ctx>, Equipment)>,
+        >,
         z3_step_machine: HashMap<(usize, StepGroup), ast::Int<'ctx>>,
         z3_step_times: HashMap<(usize, StepGroup, &'static str), ast::Int<'ctx>>,
         all_endings: &[ast::Int<'ctx>],
@@ -389,7 +393,7 @@ impl<'a> Plan<'a> {
                 panic!("TODO: better error handling");
             }
             SatResult::Sat => {
-                let model = solver.get_model();
+                let model = solver.get_model().expect("Model generation failed");
                 // println!("{:?}", model);
                 // First normalize all the z3 variables into a hashmap that let
                 // us see the process, transfer and clean timestamps and the
@@ -410,12 +414,14 @@ impl<'a> Plan<'a> {
                     let machine_step = z3_step_machine
                         .get(&(*batch_id, step_group.clone()))
                         .unwrap();
-                    let machine_value = model.eval(machine_step).unwrap().as_i64().unwrap();
+                    let machine_value = model.eval(machine_step, true).unwrap().as_i64().unwrap();
                     let equipment = machine_lookup.get(&(machine_value as usize)).unwrap();
                     let equipment_2 = factory.equipments.values().nth(1).unwrap();
-                    let ts_value = model.eval(var).unwrap().as_i64().unwrap();
-                    let ts =
-                        DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_value, 0), Utc);
+                    let ts_value = model.eval(var, true).unwrap().as_i64().unwrap();
+                    let ts = DateTime::<Utc>::from_utc(
+                        NaiveDateTime::from_timestamp_opt(ts_value, 0).unwrap(),
+                        Utc,
+                    );
                     match events.get_mut(&(*batch_id, step_group.clone())) {
                         None => {
                             let mut ts1a = None;
@@ -526,7 +532,7 @@ impl<'a> Plan<'a> {
                     if i == repeat - 1 {
                         return;
                     }
-                    let model = solver.get_model();
+                    let model = solver.get_model().expect("model generation failed");
                     // Wrapping a solver.pop/push around this loop leads to worse
                     // planning outcomes.  This is strange because my intuition
                     // would say that adding more constraints would make it
@@ -534,7 +540,7 @@ impl<'a> Plan<'a> {
                     // appears that z3 can make better heuristics when there
                     // are more overlapping constraints.
                     for ending in all_endings {
-                        let cur_val = model.eval(ending).unwrap();
+                        let cur_val = model.eval(ending, true).unwrap();
                         solver.assert(&ending.le(&cur_val));
                     }
                 }
@@ -664,14 +670,14 @@ pub mod mock {
     use crate::equipment;
     use crate::step_group;
 
-    pub fn plan<'a>(
+    pub fn mock_plan<'a>(
         equipment: equipment::Equipment,
         step_group: step_group::StepGroup,
         batchneed: &'a batchneed::BatchNeed<'a>,
     ) -> Plan<'a> {
-        let action = action::mock::process(equipment);
-        let start = Utc.ymd(2020, 12, 30).and_hms(13, 14, 15);
-        let end = Utc.ymd(2020, 12, 30).and_hms(15, 14, 15);
+        let action = action::mock::mock_process(equipment);
+        let start = Utc.with_ymd_and_hms(2020, 12, 30, 13, 14, 15).unwrap();
+        let end = Utc.with_ymd_and_hms(2020, 12, 30, 15, 14, 15).unwrap();
 
         Plan::new(666, &batchneed, step_group, action, start, end)
     }
@@ -685,29 +691,29 @@ mod tests {
     use crate::beer;
     use crate::equipment;
     // use crate::factory;
-    use crate::step_group;
     use crate::capacity;
+    use crate::step_group;
 
     #[test]
     fn test_plan_mocks() {
-        let beer = beer::mock::beer();
-        let system = capacity::mock::bbl5();
-        let equipment = equipment::mock::equipment();
-        let batchneed = batchneed::mock::batchneed(&beer, system.clone());
-        let step_group = step_group::mock::brewing();
-        let plan = mock::plan(equipment.clone(), step_group.clone(), &batchneed);
-        let equipment = equipment::mock::equipment();
+        let beer = beer::mock::mock_beer();
+        let system = capacity::mock::mock_bbl5();
+        let equipment = equipment::mock::mock_equipment();
+        let batchneed = batchneed::mock::mock_batchneed(&beer, system.clone());
+        let step_group = step_group::mock::mock_brewing();
+        let plan = mock::mock_plan(equipment.clone(), step_group.clone(), &batchneed);
+        let equipment = equipment::mock::mock_equipment();
         assert_eq!(plan.id, 666);
         assert_eq!(plan.batch.beer, &beer);
         assert_eq!(plan.step_group, step_group);
         assert_eq!(plan.batch.system, system);
-        assert_eq!(plan.action, action::mock::process(equipment));
+        assert_eq!(plan.action, action::mock::mock_process(equipment));
         assert!(plan.start < plan.end);
     }
 
     // #[test]
     // fn test_plan_do_magic() {
-    //     let factory = factory::mock::factory();
+    //     let factory = factory::mock::mock_factory();
     //     let now: DateTime<Utc> = Utc::now();
     //     let wishlist = HashMap::new();
     //     // @FIXME: better test case: real beer in factory

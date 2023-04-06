@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::steps::Steps;
 use crate::capacity::Capacity;
 use crate::config::{FactoryConfig, RecipeConfig};
+use crate::steps::Steps;
 use crate::volume::Volume;
 
 /**
@@ -45,30 +45,35 @@ impl Recipe {
 
 impl From<(&FactoryConfig, &RecipeConfig)> for Recipe {
     fn from(config_pair: (&FactoryConfig, &RecipeConfig)) -> Self {
-        let (factory_config_ref, recipe_config_ref) = config_pair;
+        let (factory_config_ref, _recipe_config_ref) = config_pair;
         let system_capacity = match Capacity::from_str(&factory_config_ref.capacity) {
             Ok(c) => c,
-            Err(_) => panic!("{} does not appear to be a valid system capacity", &factory_config_ref.capacity),
+            Err(_) => panic!(
+                "{} does not appear to be a valid system capacity",
+                &factory_config_ref.capacity
+            ),
         };
 
-        Recipe::new(system_capacity,
-                    Volume::GallonUS(10 as f32),
-                    Steps::new(None, None, None, None, None, None))
+        Recipe::new(
+            system_capacity,
+            Volume::GallonUS(10 as f32),
+            Steps::new(None, None, None, None, None, None),
+        )
     }
 }
 
 #[cfg(test)]
 pub mod mock {
     use super::*;
-    use crate::steps;
     use crate::capacity;
+    use crate::steps;
     use crate::volume;
 
-    pub fn Recipe() -> Recipe {
+    pub fn mock_recipe() -> Recipe {
         Recipe::new(
-            capacity::mock::g5(),
-            volume::mock::gallon_us(),
-            steps::mock::steps(),
+            capacity::mock::mock_g5(),
+            volume::mock::mock_gallon_us(),
+            steps::mock::mock_steps(),
         )
     }
 }
@@ -76,16 +81,16 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::steps;
     use crate::capacity;
+    use crate::steps;
     use crate::volume;
 
     #[test]
     fn test_recipe_new() {
-        let recipe = mock::Recipe();
+        let recipe = mock::mock_recipe();
         assert_eq!(
-            recipe.get(&capacity::mock::g5()),
-            Some(&(volume::mock::gallon_us(), steps::mock::steps()))
+            recipe.get(&capacity::mock::mock_g5()),
+            Some(&(volume::mock::mock_gallon_us(), steps::mock::mock_steps()))
         );
     }
 }

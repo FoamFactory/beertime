@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -65,7 +64,9 @@ impl Volume {
         convert_to!(Volume::Liter, self)
     }
 
-    pub fn to_bbl(&self) -> Volume { convert_to!(Volume::BeerBarrel, self) }
+    pub fn to_bbl(&self) -> Volume {
+        convert_to!(Volume::BeerBarrel, self)
+    }
 
     pub fn full_batches(&self, batch_size: &Volume) -> usize {
         if let Volume::Liter(need) = self.to_liter() {
@@ -104,44 +105,45 @@ impl std::str::FromStr for Volume {
 pub mod mock {
     use super::*;
 
-    pub fn gallon_us() -> Volume {
+    pub fn mock_gallon_us() -> Volume {
         Volume::GallonUS(5.0)
     }
 
-    pub fn gallon_us_dry() -> Volume {
+    pub fn mock_gallon_us_dry() -> Volume {
         Volume::GallonUSDry(12.2)
     }
 
-    pub fn gallon_imperial() -> Volume {
+    pub fn mock_gallon_imperial() -> Volume {
         Volume::GallonImperial(12.2)
     }
 
-    pub fn liter() -> Volume {
+    pub fn mock_liter() -> Volume {
         Volume::Liter(12.2)
     }
 
-    pub fn lb() -> Volume {
+    pub fn mock_lb() -> Volume {
         Volume::Lb(12.2)
     }
 
-    pub fn bbl() -> Volume { Volume::BeerBarrel(7.0) }
+    pub fn mock_bbl() -> Volume {
+        Volume::BeerBarrel(7.0)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn test_volume_convert_bbl() {
-        assert_eq!(mock::bbl().to_gallon_us(), Volume::GallonUS((217.00043)));
-        assert_eq!(mock::bbl().to_liter(), Volume::Liter(821.4359));
+        assert_eq!(mock::mock_bbl().to_gallon_us(), Volume::GallonUS(217.00043));
+        assert_eq!(mock::mock_bbl().to_liter(), Volume::Liter(821.4359));
     }
     #[test]
     fn test_volume_convert_liter_gallonus() {
-        assert_eq!(mock::liter().to_liter(), Volume::Liter(12.2));
-        assert_eq!(mock::gallon_us().to_gallon_us(), Volume::GallonUS(5.0));
-        assert_eq!(mock::gallon_us().to_liter(), Volume::Liter(18.927057));
+        assert_eq!(mock::mock_liter().to_liter(), Volume::Liter(12.2));
+        assert_eq!(mock::mock_gallon_us().to_gallon_us(), Volume::GallonUS(5.0));
+        assert_eq!(mock::mock_gallon_us().to_liter(), Volume::Liter(18.927057));
         assert_eq!(
             Volume::Liter(46.182).to_gallon_us(),
             Volume::GallonUS(12.199993)
@@ -150,10 +152,13 @@ mod tests {
 
     #[test]
     fn test_volume_lookup() {
-        assert_eq!(&mock::gallon_us().lookup(), "5G");
-        assert_eq!(&mock::gallon_us_dry().lookup(), "12.2 US Dry Gallon");
-        assert_eq!(&mock::gallon_imperial().lookup(), "12.2 Imperial Gallon");
-        assert_eq!(&mock::liter().lookup(), "12.2 liters");
+        assert_eq!(&mock::mock_gallon_us().lookup(), "5G");
+        assert_eq!(&mock::mock_gallon_us_dry().lookup(), "12.2 US Dry Gallon");
+        assert_eq!(
+            &mock::mock_gallon_imperial().lookup(),
+            "12.2 Imperial Gallon"
+        );
+        assert_eq!(&mock::mock_liter().lookup(), "12.2 liters");
     }
 
     #[test]

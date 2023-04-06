@@ -1,8 +1,5 @@
-use std::fmt::{Display, Formatter};
 use crate::volume::Volume;
-
-#[macro_use]
-use crate::convert_to;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Capacity {
@@ -24,13 +21,12 @@ pub trait SizeCheck {
 
 impl SizeCheck for String {
     fn is_us_gallon(&self, amount: f32) -> bool {
-        return self.as_str() == format!("{}g", amount)
-            || self.as_str() == format!("{}G", amount);
+        return self.as_str() == format!("{}g", amount) || self.as_str() == format!("{}G", amount);
     }
 
     fn is_beer_barrel(&self, amount: f32) -> bool {
         return self.as_str() == format!("{}bbl", amount)
-          || self.as_str() == format!("{}BBL", amount);
+            || self.as_str() == format!("{}BBL", amount);
     }
 }
 
@@ -59,7 +55,7 @@ impl Capacity {
             Capacity::BBL7 => Volume::BeerBarrel(7.0),
             Capacity::BBL10 => Volume::BeerBarrel(10.0),
             Capacity::BBL15 => Volume::BeerBarrel(15.0),
-            Capacity::UNKNOWN => panic!("Unknown capacity!")
+            Capacity::UNKNOWN => panic!("Unknown capacity!"),
         }
     }
 
@@ -105,29 +101,31 @@ impl std::str::FromStr for Capacity {
 pub mod mock {
     use super::*;
 
-    pub fn g5() -> Capacity {
+    pub fn mock_g5() -> Capacity {
         Capacity::G5
     }
 
-    pub fn g10() -> Capacity {
+    pub fn mock_g10() -> Capacity {
         Capacity::G10
     }
 
-    pub fn g14() -> Capacity { Capacity::G14 }
+    pub fn mock_g14() -> Capacity {
+        Capacity::G14
+    }
 
-    pub fn g15() -> Capacity {
+    pub fn mock_g15() -> Capacity {
         Capacity::G15
     }
 
-    pub fn bbl5() -> Capacity {
+    pub fn mock_bbl5() -> Capacity {
         Capacity::BBL5
     }
 
-    pub fn bbl10() -> Capacity {
+    pub fn mock_bbl10() -> Capacity {
         Capacity::BBL10
     }
 
-    pub fn bbl15() -> Capacity {
+    pub fn mock_bbl15() -> Capacity {
         Capacity::BBL15
     }
 }

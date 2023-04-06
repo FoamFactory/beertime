@@ -117,7 +117,7 @@ impl<'a> std::iter::Iterator for StepIterator<'a> {
 pub mod mock {
     use super::*;
 
-    pub fn steps() -> Steps {
+    pub fn mock_steps() -> Steps {
         Steps::new(
             Some(Interval::Hours(12)),
             Some(Interval::Days(11)),
@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_steps_new() {
-        let steps = mock::steps();
+        let steps = mock::mock_steps();
         assert_eq!(
             StepIterator::new(&steps).collect::<Vec<(StepGroup, Interval)>>(),
             vec![

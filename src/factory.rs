@@ -5,10 +5,10 @@ use z3::{ast, ast::Ast, Config, Context, Optimize, SatResult};
 
 use crate::batchneed::BatchNeed;
 use crate::beer::Beer;
+use crate::capacity::Capacity;
 use crate::equipment::Equipment;
 use crate::equipment_group::EquipmentGroup;
 use crate::step_group::StepGroup;
-use crate::capacity::Capacity;
 use crate::volume::Volume;
 
 #[derive(Debug, PartialEq)]
@@ -117,10 +117,10 @@ impl Factory {
         solver.minimize(&total_batches);
         match solver.check(&[]) {
             SatResult::Sat => {
-                let model = solver.get_model();
+                let model = solver.get_model().expect("Model generation failed");
                 let mut id = 1;
                 for ((name, system), batch_count_int) in all_beer_system_batches.iter() {
-                    let batch_count = model.eval(batch_count_int).unwrap().as_i64().unwrap();
+                    let batch_count = model.eval(batch_count_int, true).unwrap().as_i64().unwrap();
                     let beer = self.beers.get(&name.to_string()).unwrap();
                     for i in 0..batch_count {
                         let (r#yield, _steps) = beer.recipe.get(&system).unwrap();
@@ -222,7 +222,9 @@ impl Factory {
     ) -> Vec<&Equipment> {
         let mut out = Vec::new();
         for equipment in self.equipments.values() {
-            if equipment.capacity.volume().ge(&capacity.volume()) && &equipment.equipment_group == equipment_group {
+            if equipment.capacity.volume().ge(&capacity.volume())
+                && &equipment.equipment_group == equipment_group
+            {
                 out.push(equipment)
             }
         }
@@ -260,15 +262,15 @@ pub mod mock {
     use crate::beer;
     use crate::equipment;
 
-    pub fn factory() -> Factory {
+    pub fn mock_factory() -> Factory {
         let mut factory = Factory::new("loonslanding");
 
-        let equipment = equipment::mock::equipment();
+        let equipment = equipment::mock::mock_equipment();
         factory
             .equipments
             .insert(equipment.name.to_string(), equipment);
 
-        let beer = beer::mock::beer();
+        let beer = beer::mock::mock_beer();
         factory.beers.insert(beer.name.to_string(), beer);
 
         factory
@@ -278,14 +280,13 @@ pub mod mock {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::capacity;
     use crate::equipment;
     use crate::equipment_group;
-    use crate::capacity;
-    use crate::volume;
 
     #[test]
     fn test_factory_new() {
-        let factory = mock::factory();
+        let factory = mock::mock_factory();
         assert_eq!(&factory.name, "loonslanding");
         assert_eq!(factory.equipments.len(), 1);
         assert_eq!(factory.beers.len(), 1);
@@ -293,12 +294,12 @@ mod tests {
 
     #[test]
     fn test_factory_list_suited_equipment() {
-        let mut factory = mock::factory();
-        let equipment_1 = equipment::mock::equipment();
+        let mut factory = mock::mock_factory();
+        let equipment_1 = equipment::mock::mock_equipment();
         let equipment_2 = Equipment::new(
             "Foobar 2001".to_string(),
-            capacity::mock::bbl5(),
-            equipment_group::mock::mash_tun(),
+            capacity::mock::mock_bbl5(),
+            equipment_group::mock::mock_mash_tun(),
         );
 
         factory

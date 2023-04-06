@@ -1,6 +1,5 @@
 use crate::config::{FactoryConfig, RecipeConfig};
 use crate::recipe::Recipe;
-use crate::style;
 use crate::style::Style;
 
 #[derive(Debug, PartialEq)]
@@ -32,11 +31,11 @@ pub mod mock {
     use crate::recipe;
     use crate::style;
 
-    pub fn beer() -> Beer {
+    pub fn mock_beer() -> Beer {
         Beer::new(
             "foobeer 2000".to_string(),
-            style::mock::blonde_ale(),
-            recipe::mock::Recipe(),
+            style::mock::mock_blonde_ale(),
+            recipe::mock::mock_recipe(),
         )
     }
 }
@@ -48,7 +47,7 @@ impl From<(&FactoryConfig, &RecipeConfig)> for Beer {
         Beer::new(
             cloned_str,
             Style::BlondeAle,
-            Recipe::from((factory_config, recipe_config))
+            Recipe::from((factory_config, recipe_config)),
         )
     }
 }
@@ -61,9 +60,9 @@ mod tests {
 
     #[test]
     fn test_beer_new() {
-        let beer = mock::beer();
+        let beer = mock::mock_beer();
         assert_eq!(&beer.name, "foobeer 2000");
-        assert_eq!(beer.style, style::mock::blonde_ale());
-        assert_eq!(beer.recipe, recipe::mock::Recipe());
+        assert_eq!(beer.style, style::mock::mock_blonde_ale());
+        assert_eq!(beer.recipe, recipe::mock::mock_recipe());
     }
 }
